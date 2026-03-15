@@ -1,41 +1,47 @@
 # ATLAS - Cartografia dinamica delle scritture digitali della moda
 
-## Architettura scelta
-- **Frontend + BFF**: Next.js App Router + TypeScript.
-- **Data layer**: PostgreSQL con Prisma ORM e schema normalizzato per workflow editoriale/archivistico.
-- **Styling**: Tailwind CSS con visual identity cartografico-editoriale.
-- **Testing**: Vitest (unit) e Playwright (e2e scaffold).
+Piattaforma di ricerca e archivio partecipativo per mappare scritture digitali della moda con workflow contributor/editor/admin.
 
-## File tree
-```text
-app/
-components/
-lib/
-prisma/
-docs/
-tests/
-.github/workflows/
-```
+## Stack
+- Next.js 14 (App Router) + TypeScript
+- Tailwind CSS
+- Prisma ORM + PostgreSQL
+- Zod validation
+- Vitest + Playwright
 
-## Setup rapido
+## Setup locale
 ```bash
 cp .env.example .env
 npm install
+npm run prisma:generate
 npx prisma migrate dev --name init
 npm run prisma:seed
 npm run dev
 ```
 
-## Account demo
-- admin@atlas.local
-- editor@atlas.local
-- contributor@atlas.local
-(password hash demo-only)
+## Account demo seed
+- `admin@atlas.local`
+- `editor@atlas.local`
+- `contributor@atlas.local`
 
-## Comandi utili
+## API pronte per produzione (base)
+- `GET /api/health`
+- `GET/POST /api/entries`
+- `GET/PATCH /api/entries/:id`
+- `POST /api/submit`
+- `GET /api/taxonomy/groups`
+- `GET /api/analytics/overview`
+
+> Le route sensibili applicano RBAC via header `x-atlas-role` (adapter iniziale, da collegare all’auth provider definitivo in fase hardening).
+
+## Comandi qualità
 ```bash
-npm run lint
 npm run typecheck
 npm run test
-npm run test:e2e
+npm run build
+```
+
+## Docker
+```bash
+docker compose up --build
 ```
