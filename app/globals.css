@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --atlas-bg: #f4efe7;
+  --atlas-ink: #171412;
+  --atlas-paper: #fffdf9;
+  --atlas-line: #d8ccbe;
+  --atlas-accent: #7b4d2a;
+}
+
+body {
+  @apply min-h-screen antialiased;
+  background:
+    radial-gradient(circle at 15% 0%, #efe3d4 0%, transparent 35%),
+    radial-gradient(circle at 95% 10%, #e7d6c3 0%, transparent 30%),
+    var(--atlas-bg);
+  color: var(--atlas-ink);
+}
+
+.container {
+  @apply mx-auto max-w-6xl px-4;
+}
+
+.atlas-card {
+  @apply rounded-xl border bg-white/90 p-5 shadow-sm;
+  border-color: var(--atlas-line);
+}
+
+.atlas-chip {
+  @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium;
+  border-color: var(--atlas-line);
+  background: var(--atlas-paper);
+}
+
+.atlas-title {
+  @apply text-3xl font-semibold tracking-tight md:text-4xl;
+}

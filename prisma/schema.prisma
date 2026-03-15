@@ -1,0 +1,267 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EntryStatus {
+  draft
+  submitted
+  under_review
+  changes_requested
+  approved
+  published
+  rejected
+  archived
+}
+
+enum Visibility {
+  public
+  restricted
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  passwordHash String
+  displayName String
+  role        Role     @relation(fields: [roleId], references: [id])
+  roleId      String
+  entries     Entry[]  @relation("ContributorEntries")
+  reviews     Entry[]  @relation("ReviewerEntries")
+  favorites   Favorite[]
+  savedSearches SavedSearch[]
+  notifications Notification[]
+  auditLogs   AuditLog[]
+  createdRevisions EntryRevision[] @relation("UserRevisions")
+  authoredComments SubmissionComment[] @relation("UserComments")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  users       User[]
+}
+
+model Entry {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  subtitle       String?
+  abstract       String
+  description    String
+  editorialNote  String?
+  status         EntryStatus @default(draft)
+  visibility     Visibility  @default(public)
+  featured       Boolean  @default(false)
+  country        Country  @relation(fields: [countryId], references: [id])
+  countryId      String
+  region         Region?  @relation(fields: [regionId], references: [id])
+  regionId       String?
+  lat            Float?
+  lng            Float?
+  placeName      String?
+  timePeriodLabel String?
+  sourceContext  String?
+  contributor    User     @relation("ContributorEntries", fields: [contributorId], references: [id])
+  contributorId  String
+  reviewer       User?    @relation("ReviewerEntries", fields: [reviewerId], references: [id])
+  reviewerId     String?
+  canonicalLanguage String @default("it")
+  metadata       Json?
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  assignments    EntryTaxonomyAssignment[]
+  keywords       Keyword[]
+  hashtags       Hashtag[]
+  mediaAssets    MediaAsset[]
+  sourceLinks    SourceLink[]
+  bibliographyItems BibliographyItem[]
+  revisions      EntryRevision[]
+  comments       SubmissionComment[]
+  collectionEntries CollectionEntry[]
+  favorites Favorite[]
+}
+
+model EntryRevision {
+  id        String   @id @default(cuid())
+  entry     Entry    @relation(fields: [entryId], references: [id])
+  entryId   String
+  snapshot  Json
+  createdBy User     @relation("UserRevisions", fields: [createdById], references: [id])
+  createdById String
+  createdAt DateTime @default(now())
+}
+
+model Country {
+  id       String @id @default(cuid())
+  name     String @unique
+  code     String @unique
+  entries  Entry[]
+  regions  Region[]
+}
+
+model Region {
+  id        String @id @default(cuid())
+  name      String
+  country   Country @relation(fields: [countryId], references: [id])
+  countryId String
+  entries   Entry[]
+}
+
+model TaxonomyGroup {
+  id          String @id @default(cuid())
+  slug        String @unique
+  labelIt     String
+  labelEn     String
+  labelFr     String
+  terms       TaxonomyTerm[]
+}
+
+model TaxonomyTerm {
+  id          String @id @default(cuid())
+  group       TaxonomyGroup @relation(fields: [groupId], references: [id])
+  groupId     String
+  slug        String
+  labelIt     String
+  labelEn     String
+  labelFr     String
+  aliases     String[]
+  assignments EntryTaxonomyAssignment[]
+  @@unique([groupId, slug])
+}
+
+model EntryTaxonomyAssignment {
+  id      String @id @default(cuid())
+  entry   Entry @relation(fields: [entryId], references: [id])
+  entryId String
+  term    TaxonomyTerm @relation(fields: [termId], references: [id])
+  termId  String
+  @@unique([entryId, termId])
+}
+
+model Keyword {
+  id      String @id @default(cuid())
+  value   String
+  entry   Entry  @relation(fields: [entryId], references: [id])
+  entryId String
+}
+
+model Hashtag {
+  id      String @id @default(cuid())
+  value   String
+  entry   Entry  @relation(fields: [entryId], references: [id])
+  entryId String
+}
+
+model MediaAsset {
+  id      String @id @default(cuid())
+  kind    String
+  url     String
+  altText String
+  entry   Entry  @relation(fields: [entryId], references: [id])
+  entryId String
+}
+
+model SourceLink {
+  id      String @id @default(cuid())
+  label   String
+  url     String
+  entry   Entry  @relation(fields: [entryId], references: [id])
+  entryId String
+}
+
+model BibliographyItem {
+  id      String @id @default(cuid())
+  citation String
+  entry   Entry  @relation(fields: [entryId], references: [id])
+  entryId String
+}
+
+model Collection {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  intro       String
+  heroImage   String?
+  sections    CollectionSection[]
+  entries     CollectionEntry[]
+}
+
+model CollectionSection {
+  id           String @id @default(cuid())
+  title        String
+  content      String
+  orderIndex   Int
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  collectionId String
+}
+
+model CollectionEntry {
+  id           String @id @default(cuid())
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  collectionId String
+  entry        Entry @relation(fields: [entryId], references: [id])
+  entryId      String
+  orderIndex   Int
+}
+
+model Favorite {
+  id      String @id @default(cuid())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+  entry   Entry  @relation(fields: [entryId], references: [id])
+  entryId String
+}
+
+model SavedSearch {
+  id      String @id @default(cuid())
+  label   String
+  query   Json
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+}
+
+model Notification {
+  id      String @id @default(cuid())
+  title   String
+  body    String
+  read    Boolean @default(false)
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+}
+
+model AuditLog {
+  id        String @id @default(cuid())
+  action    String
+  payload   Json?
+  actor     User   @relation(fields: [actorId], references: [id])
+  actorId   String
+  createdAt DateTime @default(now())
+}
+
+model TaxonomySuggestion {
+  id         String @id @default(cuid())
+  groupSlug  String
+  label      String
+  rationale  String
+  status     String @default("submitted")
+  createdAt  DateTime @default(now())
+}
+
+model SubmissionComment {
+  id        String @id @default(cuid())
+  entry     Entry @relation(fields: [entryId], references: [id])
+  entryId   String
+  author    User @relation("UserComments", fields: [authorId], references: [id])
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+}
