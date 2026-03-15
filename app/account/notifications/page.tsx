@@ -5,7 +5,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function AccountNotificationsPage() {
   const user = await getDemoContributor();
-  const notifications = user ? await prisma.notification.findMany({ where: { userId: user.id }, orderBy: { id: 'desc' }, take: 50 }).catch(() => []) : [];
+  const notifications: Awaited<ReturnType<typeof prisma.notification.findMany>> = user
+    ? await prisma.notification.findMany({ where: { userId: user.id }, orderBy: { id: 'desc' }, take: 50 }).catch(() => [])
+    : [];
 
   return (
     <section className="space-y-4">

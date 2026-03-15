@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminMediaPage() {
-  const media = await prisma.mediaAsset.findMany({ orderBy: { id: 'desc' }, take: 50 }).catch(() => []);
+  const media: Awaited<ReturnType<typeof prisma.mediaAsset.findMany>> = await prisma.mediaAsset.findMany({ orderBy: { id: 'desc' }, take: 50 }).catch(() => []);
 
   return (
     <section className="space-y-4">

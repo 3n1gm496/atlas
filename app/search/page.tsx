@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const q = searchParams.q?.trim() ?? '';
-  const entries = q
+  const entries: Awaited<ReturnType<typeof prisma.entry.findMany>> = q
     ? await prisma.entry.findMany({
         where: { OR: [{ title: { contains: q, mode: 'insensitive' } }, { abstract: { contains: q, mode: 'insensitive' } }] },
         take: 30,

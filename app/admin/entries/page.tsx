@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminEntriesPage() {
-  const entries = await prisma.entry.findMany({ orderBy: { updatedAt: 'desc' }, take: 50 }).catch(() => []);
+  const entries: Awaited<ReturnType<typeof prisma.entry.findMany>> = await prisma.entry.findMany({ orderBy: { updatedAt: 'desc' }, take: 50 }).catch(() => []);
 
   return (
     <section className="space-y-4">
