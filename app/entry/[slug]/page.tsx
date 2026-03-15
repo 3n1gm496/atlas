@@ -30,7 +30,7 @@ export default async function EntryDetail({ params }: { params: { slug: string }
     return (
       <section className="atlas-card">
         <h1 className="text-2xl font-semibold">Errore di connessione</h1>
-        <p className="mt-2 text-sm text-neutral-700">Impossibile caricare l'entry in questo momento.</p>
+        <p className="mt-2 text-sm text-neutral-700">Impossibile caricare l&apos;entry in questo momento.</p>
       </section>
     );
   }

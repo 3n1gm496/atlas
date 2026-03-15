@@ -45,3 +45,6 @@ npm run build
 ```bash
 docker compose up --build
 ```
+
+## Stato produzione
+Vedi checklist dettagliata: `docs/production-readiness.md`.
