@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
+import { demoEntries } from '@/lib/demo-content';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,28 @@ export default async function AccountFavoritesPage() {
   if (user) {
     favorites = await prisma.favorite
       .findMany({ where: { userId: user.id }, include: { entry: true }, take: 50 })
-      .catch(() => []);
+      .catch(() =>
+        demoEntries.slice(0, 3).map((entry) => ({
+          id: `favorite-${entry.id}`,
+          userId: user.id,
+          entryId: entry.id,
+          entry: {
+            id: entry.id,
+            slug: entry.slug,
+            title: entry.title,
+            abstract: entry.abstract,
+            description: entry.description,
+            status: entry.status,
+            countryId: 'demo-country',
+            contributorId: entry.contributorId,
+            canonicalLanguage: entry.canonicalLanguage,
+            visibility: 'public',
+            featured: entry.featured,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        } as FavoriteWithEntry))
+      );
   }
 
   return (
@@ -23,10 +45,11 @@ export default async function AccountFavoritesPage() {
       <div className="space-y-2">
         {favorites.map((f) => (
           <Link key={f.id} href={`/entry/${f.entry.slug}`} className="atlas-card block">
-            {f.entry.title}
+            <p className="font-semibold">{f.entry.title}</p>
+            <p className="mt-2 text-sm text-neutral-700">{f.entry.abstract}</p>
           </Link>
         ))}
-        {favorites.length === 0 ? <div className="atlas-card text-sm text-neutral-600">Nessun preferito salvato.</div> : null}
+        {favorites.length === 0 ? <div className="atlas-empty">Nessun preferito salvato.</div> : null}
       </div>
     </section>
   );

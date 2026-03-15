@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.string().url().default('postgresql://atlas:atlas@localhost:5432/atlas'),
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  NEXTAUTH_SECRET: z.string().min(32),
+  NEXTAUTH_SECRET: z.string().min(32).default('atlas-dev-secret-please-change-2026'),
   NEXTAUTH_URL: z.string().url().default('http://localhost:3000')
 });
 

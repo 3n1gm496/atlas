@@ -11,16 +11,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body>
+      <body className="overflow-x-hidden">
         <Providers>
           <Nav />
-          <main className="container py-10">{children}</main>
-          <footer className="mt-14 border-t border-atlas-muted py-8 text-center text-xs text-neutral-600">
-            ATLAS · Archivio critico delle scritture digitali della moda mediterranea.
+          <main className="container py-8 sm:py-10">{children}</main>
+          <footer className="mt-14 border-t border-atlas-muted bg-white/50 py-8">
+            <div className="container flex flex-col gap-3 text-xs text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
+              <p>ATLAS · Archivio critico delle scritture digitali della moda mediterranea.</p>
+              <p>Ricerca, curatela, workflow editoriale e contributi distribuiti.</p>
+            </div>
           </footer>
         </Providers>
       </body>
     </html>
   );
 }
-

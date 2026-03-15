@@ -8,6 +8,9 @@
   --atlas-paper: #fffdf9;
   --atlas-line: #d8ccbe;
   --atlas-accent: #7b4d2a;
+  --atlas-accent-soft: #ead8c7;
+  --atlas-green: #365944;
+  --atlas-amber: #9a6324;
 }
 
 body {
@@ -20,11 +23,11 @@ body {
 }
 
 .container {
-  @apply mx-auto max-w-6xl px-4;
+  @apply mx-auto max-w-7xl px-4 sm:px-6;
 }
 
 .atlas-card {
-  @apply rounded-xl border bg-white/90 p-5 shadow-sm;
+  @apply rounded-3xl border bg-white/90 p-5 shadow-sm;
   border-color: var(--atlas-line);
 }
 
@@ -36,4 +39,43 @@ body {
 
 .atlas-title {
   @apply text-3xl font-semibold tracking-tight md:text-4xl;
+}
+
+.atlas-kicker {
+  @apply text-xs font-semibold uppercase tracking-[0.24em];
+  color: var(--atlas-accent);
+}
+
+.atlas-hero {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 249, 0.96), rgba(255, 255, 255, 0.8)),
+    radial-gradient(circle at top right, rgba(123, 77, 42, 0.15), transparent 30%);
+}
+
+.atlas-stat {
+  @apply rounded-3xl border p-4;
+  border-color: var(--atlas-line);
+  background: rgba(255, 253, 249, 0.86);
+}
+
+.atlas-empty {
+  @apply rounded-3xl border border-dashed p-6 text-sm;
+  border-color: var(--atlas-line);
+  background: rgba(255, 253, 249, 0.72);
+  color: rgb(82 82 82);
+}
+
+.atlas-link {
+  @apply rounded-full px-4 py-2 text-sm font-medium transition;
+}
+
+.atlas-link-primary {
+  @apply rounded-full px-4 py-2 text-sm font-medium text-white transition;
+  background: var(--atlas-ink);
+}
+
+.atlas-link-secondary {
+  @apply rounded-full border px-4 py-2 text-sm font-medium transition;
+  border-color: var(--atlas-line);
+  background: rgba(255, 253, 249, 0.92);
 }

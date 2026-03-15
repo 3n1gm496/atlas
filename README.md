@@ -22,6 +22,15 @@ npm run prisma:seed
 npm run dev
 ```
 
+## Docker Compose automatico
+`docker compose up --build` ora:
+- avvia PostgreSQL
+- aspetta che il DB sia pronto
+- applica automaticamente le migrazioni Prisma
+- esegue il seed automatico solo se il database e vuoto
+
+Quindi al primo avvio troverai gia utenti demo, tassonomie, entry, collezioni e dati per le dashboard.
+
 ## Account demo seed
 | Email | Ruolo | Password |
 |-------|-------|----------|

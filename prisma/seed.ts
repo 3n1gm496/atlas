@@ -428,32 +428,45 @@ function toSlug(s: string): string {
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
-  // Full cleanup in safe dependency order
-  await prisma.$transaction([
-    prisma.auditLog.deleteMany(),
-    prisma.taxonomySuggestion.deleteMany(),
-    prisma.savedSearch.deleteMany(),
-    prisma.notification.deleteMany(),
-    prisma.favorite.deleteMany(),
-    prisma.collectionEntry.deleteMany(),
-    prisma.collectionSection.deleteMany(),
-    prisma.collection.deleteMany(),
-    prisma.entryTaxonomyAssignment.deleteMany(),
-    prisma.keyword.deleteMany(),
-    prisma.hashtag.deleteMany(),
-    prisma.mediaAsset.deleteMany(),
-    prisma.sourceLink.deleteMany(),
-    prisma.bibliographyItem.deleteMany(),
-    prisma.entryRevision.deleteMany(),
-    prisma.submissionComment.deleteMany(),
-    prisma.entry.deleteMany(),
-    prisma.taxonomyTerm.deleteMany(),
-    prisma.taxonomyGroup.deleteMany(),
-    prisma.region.deleteMany(),
-    prisma.country.deleteMany(),
-    prisma.user.deleteMany(),
-    prisma.role.deleteMany(),
+  const seedMode = process.env.ATLAS_SEED_MODE === 'bootstrap' ? 'bootstrap' : 'reset';
+  const [existingUsers, existingEntries] = await Promise.all([
+    prisma.user.count().catch(() => 0),
+    prisma.entry.count().catch(() => 0),
   ]);
+
+  if (seedMode === 'bootstrap' && (existingUsers > 0 || existingEntries > 0)) {
+    console.log('ATLAS bootstrap seed skipped: database already contains data.');
+    return;
+  }
+
+  if (seedMode === 'reset') {
+    // Full cleanup in safe dependency order for explicit reseeds.
+    await prisma.$transaction([
+      prisma.auditLog.deleteMany(),
+      prisma.taxonomySuggestion.deleteMany(),
+      prisma.savedSearch.deleteMany(),
+      prisma.notification.deleteMany(),
+      prisma.favorite.deleteMany(),
+      prisma.collectionEntry.deleteMany(),
+      prisma.collectionSection.deleteMany(),
+      prisma.collection.deleteMany(),
+      prisma.entryTaxonomyAssignment.deleteMany(),
+      prisma.keyword.deleteMany(),
+      prisma.hashtag.deleteMany(),
+      prisma.mediaAsset.deleteMany(),
+      prisma.sourceLink.deleteMany(),
+      prisma.bibliographyItem.deleteMany(),
+      prisma.entryRevision.deleteMany(),
+      prisma.submissionComment.deleteMany(),
+      prisma.entry.deleteMany(),
+      prisma.taxonomyTerm.deleteMany(),
+      prisma.taxonomyGroup.deleteMany(),
+      prisma.region.deleteMany(),
+      prisma.country.deleteMany(),
+      prisma.user.deleteMany(),
+      prisma.role.deleteMany(),
+    ]);
+  }
 
   // ------------------------------------------------------------------
   // Roles
