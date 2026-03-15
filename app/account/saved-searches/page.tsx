@@ -5,7 +5,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function AccountSavedSearchesPage() {
   const user = await getDemoContributor();
-  const searches = user ? await prisma.savedSearch.findMany({ where: { userId: user.id }, take: 50 }).catch(() => []) : [];
+  const searches: Awaited<ReturnType<typeof prisma.savedSearch.findMany>> = user
+    ? await prisma.savedSearch.findMany({ where: { userId: user.id }, take: 50 }).catch(() => [])
+    : [];
 
   return (
     <section className="space-y-4">

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminAuditPage() {
-  const logs = await prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }).catch(() => []);
+  const logs: Awaited<ReturnType<typeof prisma.auditLog.findMany>> = await prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }).catch(() => []);
 
   return (
     <section className="space-y-4">

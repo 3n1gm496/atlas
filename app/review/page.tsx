@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export default async function ReviewPage() {
-  const queue = await prisma.entry.findMany({ where: { status: { in: ['submitted', 'under_review', 'changes_requested'] } }, take: 40, orderBy: { updatedAt: 'desc' } }).catch(() => []);
+  const queue: Awaited<ReturnType<typeof prisma.entry.findMany>> = await prisma.entry
+    .findMany({ where: { status: { in: ['submitted', 'under_review', 'changes_requested'] } }, take: 40, orderBy: { updatedAt: 'desc' } })
+    .catch(() => []);
 
   return (
     <section className="space-y-4">

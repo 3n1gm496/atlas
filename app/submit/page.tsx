@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SubmitPage() {
   const contributor = await getDemoContributor();
-  const drafts = contributor
+  const drafts: Awaited<ReturnType<typeof prisma.entry.findMany>> = contributor
     ? await prisma.entry.findMany({ where: { contributorId: contributor.id }, orderBy: { updatedAt: 'desc' }, take: 30 }).catch(() => [])
     : [];
 

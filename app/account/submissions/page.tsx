@@ -5,7 +5,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function AccountSubmissionsPage() {
   const user = await getDemoContributor();
-  const submissions = user ? await prisma.entry.findMany({ where: { contributorId: user.id }, orderBy: { updatedAt: 'desc' }, take: 50 }).catch(() => []) : [];
+  const submissions: Awaited<ReturnType<typeof prisma.entry.findMany>> = user
+    ? await prisma.entry.findMany({ where: { contributorId: user.id }, orderBy: { updatedAt: 'desc' }, take: 50 }).catch(() => [])
+    : [];
 
   return (
     <section className="space-y-4">
