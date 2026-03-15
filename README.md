@@ -4,14 +4,17 @@ Piattaforma di ricerca e archivio partecipativo per mappare scritture digitali d
 
 ## Stack
 - Next.js 14 (App Router) + TypeScript
+- NextAuth v4 (credentials provider, JWT sessions)
 - Tailwind CSS
 - Prisma ORM + PostgreSQL
+- bcryptjs (password hashing)
 - Zod validation
 - Vitest + Playwright
 
 ## Setup locale
 ```bash
 cp .env.example .env
+# Impostare NEXTAUTH_SECRET con una stringa casuale sicura
 npm install
 npm run prisma:generate
 npx prisma migrate dev --name init
@@ -20,9 +23,18 @@ npm run dev
 ```
 
 ## Account demo seed
-- `admin@atlas.local`
-- `editor@atlas.local`
-- `contributor@atlas.local`
+| Email | Ruolo | Password |
+|-------|-------|----------|
+| `admin@atlas.local` | super_admin | `admin1234` |
+| `editor@atlas.local` | editor | `editor1234` |
+| `contributor@atlas.local` | contributor | `contributor1234` |
+| `researcher@atlas.local` | research_admin | `researcher1234` |
+
+## Autenticazione
+- Login: gestito da NextAuth (`/api/auth/callback/credentials`)
+- Registrazione: `POST /api/register`
+- Le pagine `/account/*`, `/admin/*`, `/review/*` e `/submit/new` richiedono autenticazione
+- La sessione è basata su JWT; il ruolo è salvato nel token
 
 ## API pronte per produzione (base)
 - `GET /api/health`
@@ -31,8 +43,7 @@ npm run dev
 - `POST /api/submit`
 - `GET /api/taxonomy/groups`
 - `GET /api/analytics/overview`
-
-> Le route sensibili applicano RBAC via header `x-atlas-role` (adapter iniziale, da collegare all’auth provider definitivo in fase hardening).
+- `POST /api/register`
 
 ## Comandi qualità
 ```bash

@@ -1,9 +1,9 @@
-import { getDemoContributor } from '@/lib/demo-user';
+import { getCurrentUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AccountProfilePage() {
-  const user = await getDemoContributor();
+  const user = await getCurrentUser();
 
   return (
     <section className="space-y-4">
@@ -16,3 +16,4 @@ export default async function AccountProfilePage() {
     </section>
   );
 }
+

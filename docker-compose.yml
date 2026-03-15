@@ -10,6 +10,11 @@ services:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U atlas']
+      interval: 10s
+      timeout: 5s
+      retries: 5
   app:
     build: .
     command: npm run dev
@@ -17,7 +22,12 @@ services:
       - '3000:3000'
     environment:
       DATABASE_URL: postgresql://atlas:atlas@db:5432/atlas
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # WARNING: change this to a long random secret (min 32 chars) in production
+      NEXTAUTH_SECRET: dev-secret-change-in-production-min-32x
+      NEXTAUTH_URL: http://localhost:3000
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 volumes:
   pgdata:

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { hashSync } from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -468,19 +469,19 @@ async function main() {
   const researchAdminRole = roles.find((r) => r.name === 'research_admin')!;
 
   // ------------------------------------------------------------------
-  // Demo users  (passwordHash is a dev-only placeholder)
+  // Demo users  (passwords hashed with bcrypt)
   // ------------------------------------------------------------------
   const admin = await prisma.user.create({
-    data: { email: 'admin@atlas.local', passwordHash: 'dev-only', displayName: 'ATLAS Admin', roleId: superAdminRole.id },
+    data: { email: 'admin@atlas.local', passwordHash: hashSync('admin1234', 12), displayName: 'ATLAS Admin', roleId: superAdminRole.id },
   });
   const editor = await prisma.user.create({
-    data: { email: 'editor@atlas.local', passwordHash: 'dev-only', displayName: 'ATLAS Editor', roleId: editorRole.id },
+    data: { email: 'editor@atlas.local', passwordHash: hashSync('editor1234', 12), displayName: 'ATLAS Editor', roleId: editorRole.id },
   });
   const contributor = await prisma.user.create({
-    data: { email: 'contributor@atlas.local', passwordHash: 'dev-only', displayName: 'ATLAS Contributor', roleId: contributorRole.id },
+    data: { email: 'contributor@atlas.local', passwordHash: hashSync('contributor1234', 12), displayName: 'ATLAS Contributor', roleId: contributorRole.id },
   });
   const researcher = await prisma.user.create({
-    data: { email: 'researcher@atlas.local', passwordHash: 'dev-only', displayName: 'ATLAS Researcher', roleId: researchAdminRole.id },
+    data: { email: 'researcher@atlas.local', passwordHash: hashSync('researcher1234', 12), displayName: 'ATLAS Researcher', roleId: researchAdminRole.id },
   });
 
   // ------------------------------------------------------------------
@@ -800,11 +801,11 @@ Dati caricati:
   • Preferiti, ricerche salvate, notifiche, commenti, revisioni
   • Log di audit e suggerimenti tassonomici
 
-Account demo (passwordHash = 'dev-only', solo sviluppo):
-  admin@atlas.local       — super_admin
-  editor@atlas.local      — editor
-  contributor@atlas.local — contributor
-  researcher@atlas.local  — research_admin
+Account demo (password indicata tra parentesi):
+  admin@atlas.local       — super_admin  (admin1234)
+  editor@atlas.local      — editor       (editor1234)
+  contributor@atlas.local — contributor  (contributor1234)
+  researcher@atlas.local  — research_admin (researcher1234)
 
 Per azzerare e ricaricare:  npm run db:reset
 +---------------------------------------------------------+

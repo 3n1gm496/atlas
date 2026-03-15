@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
-import { getDemoContributor } from '@/lib/demo-user';
+import { getCurrentUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AccountSavedSearchesPage() {
-  const user = await getDemoContributor();
+  const user = await getCurrentUser();
   const searches: Awaited<ReturnType<typeof prisma.savedSearch.findMany>> = user
     ? await prisma.savedSearch.findMany({ where: { userId: user.id }, take: 50 }).catch(() => [])
     : [];
