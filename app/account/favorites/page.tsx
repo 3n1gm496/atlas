@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { getDemoContributor } from '@/lib/demo-user';
+import { getCurrentUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 type FavoriteWithEntry = Prisma.FavoriteGetPayload<{ include: { entry: true } }>;
 
 export default async function AccountFavoritesPage() {
-  const user = await getDemoContributor();
+  const user = await getCurrentUser();
   let favorites: FavoriteWithEntry[] = [];
 
   if (user) {

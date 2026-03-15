@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
-import { getDemoContributor } from '@/lib/demo-user';
+import { getCurrentUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AccountNotificationsPage() {
-  const user = await getDemoContributor();
+  const user = await getCurrentUser();
   const notifications: Awaited<ReturnType<typeof prisma.notification.findMany>> = user
     ? await prisma.notification.findMany({ where: { userId: user.id }, orderBy: { id: 'desc' }, take: 50 }).catch(() => [])
     : [];
