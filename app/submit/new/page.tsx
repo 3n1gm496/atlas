@@ -1,23 +1,12 @@
 import { prisma } from '@/lib/prisma';
+import { fallbackCountries, fallbackGroups } from '@/lib/atlas-taxonomy';
 import { SubmitTrendForm } from './submit-trend-form';
 
 export const dynamic = 'force-dynamic';
 
-const fallbackGroups = [
-  { slug: 'typological', labelIt: 'Obiettivi tipologici' },
-  { slug: 'thematic', labelIt: 'Categorie tematiche' },
-  { slug: 'practices', labelIt: 'Pratiche/Culture editorializzate' },
-  { slug: 'framing', labelIt: 'Cornici culturali' },
-  { slug: 'formats', labelIt: 'Formati tecno-creativi' },
-  { slug: 'tone', labelIt: 'Tono' },
-  { slug: 'scripto', labelIt: 'Sotto-categorie scripto-iconiche' },
-  { slug: 'microforms', labelIt: 'Microforme' }
-].map((group) => ({ ...group, id: group.slug, terms: [] as { id: string; labelIt: string; groupId: string }[] }));
-
 export default async function SubmitNewPage() {
-  let countries: { id: string; name: string }[] = [];
+  let countries: { id: string; name: string }[] = fallbackCountries;
   let groups = fallbackGroups;
-  let warning = '';
 
   try {
     const [dbCountries, dbGroups] = await Promise.all([
@@ -28,10 +17,11 @@ export default async function SubmitNewPage() {
         orderBy: { slug: 'asc' }
       })
     ]);
-    countries = dbCountries;
-    groups = dbGroups;
+
+    if (dbCountries.length) countries = dbCountries;
+    if (dbGroups.length) groups = dbGroups;
   } catch {
-    warning = 'Database non raggiungibile: il form è visibile ma i metadati dipendenti dal DB non sono caricati.';
+    // Use curated fallback taxonomy/countries to keep contribution UI fully functional.
   }
 
   return (
@@ -40,7 +30,6 @@ export default async function SubmitNewPage() {
       <p className="text-sm text-neutral-700">
         Inserisci un trend culturale/digitale e seleziona i metadati necessari per classificazione cartografica e workflow editoriale.
       </p>
-      {warning ? <p className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">{warning}</p> : null}
       <SubmitTrendForm countries={countries} groups={groups} />
     </section>
   );

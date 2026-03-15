@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Validation error', issues: error.issues }, { status: 400 });
     }
 
+    if (error instanceof Error && error.message.includes('database')) {
+      return NextResponse.json({ error: 'Database unavailable. Retry shortly.' }, { status: 503 });
+    }
+
     return NextResponse.json({ error: 'Unable to create entry' }, { status: 500 });
   }
 }
