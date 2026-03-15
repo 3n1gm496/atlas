@@ -4,7 +4,9 @@ RUN apk add --no-cache openssl
 COPY package*.json ./
 RUN npm install
 COPY . .
+RUN chmod +x docker-entrypoint.sh
 RUN npx prisma generate
 RUN npm run build
 EXPOSE 3000
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["npm","run","start"]
