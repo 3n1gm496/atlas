@@ -9,10 +9,25 @@ describe('entry validation', () => {
       abstract: 'Abstract sufficientemente lungo.',
       description: 'Descrizione molto più lunga di venti caratteri per passare.',
       countryId: 'country-id',
-      canonicalLanguage: 'it'
+      canonicalLanguage: 'it',
+      taxonomyTermIds: ['t1'],
+      keywords: ['keyword-a'],
+      hashtags: ['#atlas'],
+      trendMetadata: {
+        typologicalObjective: ['Narration'],
+        thematicCategories: ['Pratiques de mode'],
+        preferredPractices: ['Broderie'],
+        culturalFramings: ['Mode et Adornement Politique'],
+        technoCreativeFormats: ['Stories'],
+        tones: ['Critique'],
+        scriptoIconicSubcategories: ['Memes'],
+        microforms: ['Hashtags'],
+        trendSummary: 'Sintesi di test'
+      }
     });
 
     expect(parsed.slug).toBe('entry-001');
+    expect(parsed.trendMetadata?.tones[0]).toBe('Critique');
   });
 
   it('rejects invalid create payload', () => {

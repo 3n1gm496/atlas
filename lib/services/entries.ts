@@ -52,11 +52,35 @@ export async function listEntries(input: Record<string, string | undefined>) {
 
 export async function createEntry(payload: unknown, contributorId: string) {
   const data = entryCreateSchema.parse(payload);
+  const taxonomyTermIds = [...new Set(data.taxonomyTermIds)];
+  const keywords = [...new Set(data.keywords.map((k) => k.trim()).filter(Boolean))];
+  const hashtags = [...new Set(data.hashtags.map((h) => h.trim()).filter(Boolean))];
+
   return prisma.entry.create({
     data: {
-      ...data,
+      slug: data.slug,
+      title: data.title,
+      abstract: data.abstract,
+      description: data.description,
+      countryId: data.countryId,
+      canonicalLanguage: data.canonicalLanguage,
+      placeName: data.placeName,
+      lat: data.lat,
+      lng: data.lng,
+      sourceContext: data.sourceContext,
+      timePeriodLabel: data.timePeriodLabel,
+      metadata: data.trendMetadata ? { trend: data.trendMetadata } : undefined,
       contributorId,
-      status: 'draft'
+      status: 'draft',
+      assignments: taxonomyTermIds.length
+        ? { createMany: { data: taxonomyTermIds.map((termId) => ({ termId })) } }
+        : undefined,
+      keywords: keywords.length
+        ? { createMany: { data: keywords.map((value) => ({ value })) } }
+        : undefined,
+      hashtags: hashtags.length
+        ? { createMany: { data: hashtags.map((value) => ({ value })) } }
+        : undefined
     }
   });
 }
