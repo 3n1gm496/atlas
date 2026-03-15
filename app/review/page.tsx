@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { demoEntries, getStatusLabel } from '@/lib/demo-content';
+import { demoEntries } from '@/lib/demo-content';
+import { ReviewBoard } from '@/components/review-board';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,13 +35,7 @@ export default async function ReviewPage() {
         <p className="text-sm text-neutral-700">Priorita, stati e contenuti che richiedono intervento di editor o amministrazione.</p>
       </div>
       <div className="space-y-2">
-        {queue.map((e) => (
-          <article key={e.id} className="atlas-card">
-            <h2 className="font-semibold"><Link href={`/entry/${e.slug}`}>{e.title}</Link></h2>
-            <p className="text-sm text-neutral-600">Stato: {getStatusLabel(e.status)}</p>
-          </article>
-        ))}
-        {queue.length === 0 ? <div className="atlas-empty">Nessuna entry in review.</div> : null}
+        {queue.length === 0 ? <div className="atlas-empty">Nessuna entry in review.</div> : <ReviewBoard initialItems={queue.map((e) => ({ id: e.id, title: e.title, status: e.status, slug: e.slug }))} />}
       </div>
     </section>
   );

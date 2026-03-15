@@ -100,8 +100,7 @@ export function SubmitTrendForm({ countries, groups }: Props) {
       const response = await fetch('/api/entries', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-atlas-role': 'contributor'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });

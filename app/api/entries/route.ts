@@ -4,10 +4,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { listEntries, createEntry } from '@/lib/services/entries';
 import { getRoleFromRequest, hasRequiredRole } from '@/lib/auth/rbac';
 import { prisma } from '@/lib/prisma';
+import { getRequestUser } from '@/lib/auth/request-user';
 
 async function resolveContributorId(req: NextRequest) {
   const requested = req.headers.get('x-atlas-user-id');
   if (requested) return requested;
+
+  const currentUser = await getRequestUser();
+  if (currentUser && ['contributor', 'super_admin', 'editor', 'research_admin'].includes(currentUser.role.name)) {
+    return currentUser.id;
+  }
 
   const contributor = await prisma.user.findFirst({
     where: { role: { name: { in: ['contributor', 'super_admin'] } } },
@@ -25,7 +31,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const role = getRoleFromRequest(req);
+  const user = await getRequestUser();
+  const role = (user?.role?.name as ReturnType<typeof getRoleFromRequest>) ?? getRoleFromRequest(req);
   if (!hasRequiredRole(role, 'contributor')) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -34,6 +41,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const contributorId = await resolveContributorId(req);
     const entry = await createEntry(body, contributorId);
+
+    if (!String(contributorId).startsWith('demo-')) {
+      await prisma.auditLog.create({
+        data: {
+          actorId: contributorId,
+          action: 'entry.create',
+          payload: { entryId: entry.id, slug: entry.slug }
+        }
+      }).catch(() => undefined);
+    }
+
     return NextResponse.json(entry, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {

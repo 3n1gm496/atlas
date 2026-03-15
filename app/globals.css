@@ -79,3 +79,44 @@ body {
   border-color: var(--atlas-line);
   background: rgba(255, 253, 249, 0.92);
 }
+
+.atlas-map-div-icon {
+  background: transparent;
+  border: 0;
+}
+
+.atlas-map-marker {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--marker-color, var(--atlas-green));
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 18px rgba(23, 20, 18, 0.22);
+}
+
+.atlas-map-marker--active {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 6px rgba(123, 77, 42, 0.18), 0 6px 18px rgba(23, 20, 18, 0.22);
+}
+
+.atlas-map-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  flex: 0 0 auto;
+}
+
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: rgba(123, 77, 42, 0.18);
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: rgba(123, 77, 42, 0.82);
+  color: white;
+  font-weight: 700;
+}

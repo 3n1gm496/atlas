@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { demoEntries, getStatusLabel } from '@/lib/demo-content';
+import { LeafletMapExplorer } from '@/components/leaflet-map-explorer';
 
 async function loadPublishedEntries() {
   try {
@@ -28,7 +29,9 @@ async function loadPublishedEntries() {
       status: entry.status,
       country: { name: entry.countryName },
       timePeriodLabel: entry.timePeriodLabel,
-      placeName: entry.placeName
+      placeName: entry.placeName,
+      lat: entry.lat,
+      lng: entry.lng
     }));
 }
 
@@ -44,9 +47,9 @@ export default async function MapPage() {
     <section className="space-y-6">
       <header className="atlas-card atlas-hero space-y-3">
         <p className="atlas-kicker">Mappa dinamica</p>
-        <h1 className="text-3xl font-semibold">Geografie culturali pronte da leggere</h1>
+        <h1 className="text-3xl font-semibold">Geografie culturali da esplorare davvero</h1>
         <p className="max-w-3xl text-sm text-neutral-700">
-          Vista aggregata per territorio, pronta per una futura mappa interattiva ma gia utile anche in formato editoriale e responsivo.
+          Leaflet ora guida l esplorazione con cluster automatici, filtri per territorio, timeline annuale, viste tematiche e focus diretto sulle schede.
         </p>
       </header>
 
@@ -77,6 +80,22 @@ export default async function MapPage() {
               </article>
             ))}
           </div>
+
+          <LeafletMapExplorer
+            entries={entries.map((entry) => ({
+              id: entry.id,
+              slug: entry.slug,
+              title: entry.title,
+              abstract: entry.abstract,
+              countryName: entry.country.name,
+              status: entry.status,
+              placeName: entry.placeName,
+              timePeriodLabel: entry.timePeriodLabel,
+              featured: entry.featured,
+              lat: entry.lat ?? 0,
+              lng: entry.lng ?? 0
+            }))}
+          />
         </>
       )}
     </section>

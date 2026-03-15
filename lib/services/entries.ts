@@ -95,12 +95,16 @@ export async function getEntryById(id: string) {
     where: { id },
     include: {
       country: true,
+      contributor: { include: { role: true } },
+      reviewer: { include: { role: true } },
       assignments: { include: { term: { include: { group: true } } } },
       keywords: true,
       hashtags: true,
       mediaAssets: true,
       sourceLinks: true,
-      bibliographyItems: true
+      bibliographyItems: true,
+      comments: { include: { author: true }, orderBy: { createdAt: 'desc' } },
+      revisions: { include: { createdBy: true }, orderBy: { createdAt: 'desc' } }
     }
   });
 }

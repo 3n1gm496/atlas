@@ -17,6 +17,9 @@ const links = [
 export function Nav() {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
+  const role = session?.user?.role;
+  const canReview = role === 'editor' || role === 'research_admin' || role === 'super_admin';
+  const canAdmin = role === 'super_admin' || role === 'research_admin';
 
   return (
     <header className="sticky top-0 z-30 border-b border-atlas-muted bg-white/85 backdrop-blur">
@@ -41,6 +44,16 @@ export function Nav() {
               <Link href="/submit/new" className="rounded-full border border-atlas-muted px-3 py-1 text-neutral-700 transition hover:bg-white">
                 Nuova entry
               </Link>
+              {canReview ? (
+                <Link href="/review" className="rounded-full px-3 py-1 text-neutral-700 transition hover:bg-neutral-900 hover:text-white">
+                  Review
+                </Link>
+              ) : null}
+              {canAdmin ? (
+                <Link href="/admin" className="rounded-full px-3 py-1 text-neutral-700 transition hover:bg-neutral-900 hover:text-white">
+                  Admin
+                </Link>
+              ) : null}
               <Link href="/account" className="rounded-full px-3 py-1 text-neutral-700 transition hover:bg-neutral-900 hover:text-white">
                 {session.user.name ?? 'Account'}
               </Link>
@@ -88,6 +101,16 @@ export function Nav() {
               <Link href="/submit/new" onClick={() => setOpen(false)} className="rounded px-3 py-2 text-neutral-700 hover:bg-neutral-100">
                 Nuova entry
               </Link>
+              {canReview ? (
+                <Link href="/review" onClick={() => setOpen(false)} className="rounded px-3 py-2 text-neutral-700 hover:bg-neutral-100">
+                  Review
+                </Link>
+              ) : null}
+              {canAdmin ? (
+                <Link href="/admin" onClick={() => setOpen(false)} className="rounded px-3 py-2 text-neutral-700 hover:bg-neutral-100">
+                  Admin
+                </Link>
+              ) : null}
               <Link href="/account" onClick={() => setOpen(false)} className="rounded px-3 py-2 text-neutral-700 hover:bg-neutral-100">
                 {session.user.name ?? 'Account'}
               </Link>

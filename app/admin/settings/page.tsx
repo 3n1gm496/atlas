@@ -12,10 +12,14 @@ export default async function AdminSettingsPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="atlas-title">Settings</h1>
-      <div className="atlas-card text-sm space-y-1">
+      <div className="atlas-card atlas-hero space-y-3">
+        <p className="atlas-kicker">Runtime overview</p>
+        <h1 className="atlas-title">Settings</h1>
+      </div>
+      <div className="atlas-card text-sm space-y-2">
         <p>Applicazione URL: {appUrl}</p>
         <p>Per deploy produzione configurare anche DB, auth provider e storage media.</p>
+        <p>Il flusso Docker ora include migrazioni automatiche e bootstrap seed non distruttivo.</p>
       </div>
     </section>
   );

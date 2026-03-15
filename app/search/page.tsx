@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { demoEntries, getStatusLabel } from '@/lib/demo-content';
+import { SearchSaveButton } from '@/components/search-save-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +51,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       </form>
       {q ? (
         <div className="space-y-2">
-          <p className="text-sm text-neutral-600">Risultati per: {q}</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-neutral-600">Risultati per: {q}</p>
+            <SearchSaveButton query={q} />
+          </div>
           {entries.map((e) => (
             <Link key={e.id} className="atlas-card block" href={`/entry/${e.slug}`}>
               <p className="font-semibold">{e.title}</p>

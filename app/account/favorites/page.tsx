@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
 import { demoEntries } from '@/lib/demo-content';
+import { FavoritesManager } from '@/components/account/favorites-manager';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,15 +42,15 @@ export default async function AccountFavoritesPage() {
   return (
     <section className="space-y-4">
       <h1 className="atlas-title">Preferiti</h1>
-      <div className="space-y-2">
-        {favorites.map((f) => (
-          <Link key={f.id} href={`/entry/${f.entry.slug}`} className="atlas-card block">
-            <p className="font-semibold">{f.entry.title}</p>
-            <p className="mt-2 text-sm text-neutral-700">{f.entry.abstract}</p>
-          </Link>
-        ))}
-        {favorites.length === 0 ? <div className="atlas-empty">Nessun preferito salvato.</div> : null}
-      </div>
+      <FavoritesManager
+        initialItems={favorites.map((f) => ({
+          id: f.id,
+          entryId: f.entry.id,
+          slug: f.entry.slug,
+          title: f.entry.title,
+          abstract: f.entry.abstract
+        }))}
+      />
     </section>
   );
 }

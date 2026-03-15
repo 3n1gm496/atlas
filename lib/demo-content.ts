@@ -20,6 +20,8 @@ export type DemoEntry = {
   status: 'published' | 'under_review' | 'changes_requested' | 'submitted' | 'draft';
   featured: boolean;
   placeName: string;
+  lat: number;
+  lng: number;
   timePeriodLabel: string;
   sourceContext: string;
   taxonomy: string[];
@@ -34,6 +36,29 @@ export type DemoCollection = {
   intro: string;
   sections: { id: string; title: string; content: string; orderIndex: number }[];
   entrySlugs: string[];
+};
+
+export type DemoNotification = {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  read: boolean;
+};
+
+export type DemoSavedSearch = {
+  id: string;
+  userId: string;
+  label: string;
+  summary: string;
+};
+
+export type DemoAuditLog = {
+  id: string;
+  action: string;
+  createdAt: string;
+  actorName: string;
+  payloadSummary: string;
 };
 
 export const demoUsers: DemoUser[] = [
@@ -81,6 +106,8 @@ export const demoEntries: DemoEntry[] = [
     status: 'published',
     featured: true,
     placeName: 'Gerusalemme Est',
+    lat: 31.778,
+    lng: 35.235,
     timePeriodLabel: '2020-2024',
     sourceContext: 'Instagram @broderie_bedouine',
     taxonomy: ['Tipologia: Narrazione', 'Pratiche: Ricamo', 'Inquadramenti: Diaspora e Migrazione'],
@@ -100,6 +127,8 @@ export const demoEntries: DemoEntry[] = [
     status: 'published',
     featured: false,
     placeName: 'Casablanca',
+    lat: 33.573,
+    lng: -7.589,
     timePeriodLabel: '2019-2023',
     sourceContext: 'Instagram @casablanca_style',
     taxonomy: ['Tematiche: Culture di moda', 'Formati: Reels/Video', 'Toni: Descrittivo'],
@@ -119,6 +148,8 @@ export const demoEntries: DemoEntry[] = [
     status: 'under_review',
     featured: true,
     placeName: 'Beirut / Parigi',
+    lat: 33.893,
+    lng: 35.501,
     timePeriodLabel: '2021-2024',
     sourceContext: 'TikTok @liban_diaspora',
     taxonomy: ['Inquadramenti: Moda in Diaspora e Migrazione', 'Microformi: Hashtag', 'Formati: Stories'],
@@ -138,6 +169,8 @@ export const demoEntries: DemoEntry[] = [
     status: 'changes_requested',
     featured: false,
     placeName: 'Atene',
+    lat: 37.984,
+    lng: 23.728,
     timePeriodLabel: '2018-2024',
     sourceContext: 'Instagram + marketplace locali',
     taxonomy: ['Pratiche: Sartoria', 'Tematiche: Pratiche di moda', 'Toni: Critico'],
@@ -157,6 +190,8 @@ export const demoEntries: DemoEntry[] = [
     status: 'submitted',
     featured: false,
     placeName: 'Palermo',
+    lat: 38.115,
+    lng: 13.361,
     timePeriodLabel: '2022-2025',
     sourceContext: 'Instagram / TikTok',
     taxonomy: ['Tipologia: Esposizione', 'Formati: Caroselli', 'Sottocategorie: Fotografie d archivio'],
@@ -176,6 +211,8 @@ export const demoEntries: DemoEntry[] = [
     status: 'published',
     featured: true,
     placeName: 'Ankara',
+    lat: 39.933,
+    lng: 32.859,
     timePeriodLabel: '2020-2025',
     sourceContext: 'Instagram / X / streaming',
     taxonomy: ['Inquadramenti: Moda e Adornamento Politico', 'Formati: Diretta streaming', 'Toni: Critico'],
@@ -223,6 +260,98 @@ export const demoCollections: DemoCollection[] = [
   }
 ];
 
+export const demoNotifications: DemoNotification[] = [
+  {
+    id: 'notif-1',
+    userId: 'demo-contributor',
+    title: 'Revisione richiesta',
+    body: 'La scheda su Atene richiede fonti aggiuntive e una nota sul contesto storico.',
+    read: false
+  },
+  {
+    id: 'notif-2',
+    userId: 'demo-contributor',
+    title: 'Entry inviata correttamente',
+    body: 'La submission Palermo digitale e entrata nella coda editoriale.',
+    read: true
+  },
+  {
+    id: 'notif-3',
+    userId: 'demo-editor',
+    title: 'Nuove entry in revisione',
+    body: 'La coda review contiene 3 schede prioritarie con media e tassonomie gia assegnate.',
+    read: false
+  },
+  {
+    id: 'notif-4',
+    userId: 'demo-admin',
+    title: 'Bootstrap completato',
+    body: 'Database, workflow, collezioni e seed sono attivi e coerenti con il progetto.',
+    read: true
+  }
+];
+
+export const demoSavedSearches: DemoSavedSearch[] = [
+  {
+    id: 'search-1',
+    userId: 'demo-contributor',
+    label: 'Diaspora e migrazione',
+    summary: 'Filtra entry con forte componente identitaria e transnazionale.'
+  },
+  {
+    id: 'search-2',
+    userId: 'demo-contributor',
+    label: 'Streetstyle nordafricano',
+    summary: 'Ricerca su Casablanca, Marrakech e estetiche urbane ibride.'
+  },
+  {
+    id: 'search-3',
+    userId: 'demo-researcher',
+    label: 'Entry featured pubblicate',
+    summary: 'Percorso rapido sulle schede piu forti per qualità curatoriale.'
+  }
+];
+
+export const demoAuditLogs: DemoAuditLog[] = [
+  {
+    id: 'audit-1',
+    action: 'seed.run',
+    createdAt: '2026-03-15T18:50:00.000Z',
+    actorName: 'ATLAS Admin',
+    payloadSummary: 'Bootstrap completo con utenti, tassonomie, 30 entry e collezioni.'
+  },
+  {
+    id: 'audit-2',
+    action: 'entry.review.comment',
+    createdAt: '2026-03-15T18:44:00.000Z',
+    actorName: 'ATLAS Editor',
+    payloadSummary: 'Commento editoriale aggiunto a una scheda in revisione.'
+  },
+  {
+    id: 'audit-3',
+    action: 'entry.submit',
+    createdAt: '2026-03-15T18:39:00.000Z',
+    actorName: 'ATLAS Contributor',
+    payloadSummary: 'Nuova scheda inviata con metadati geografici e taxonomy.'
+  }
+];
+
+export const countryPositions: Record<string, { x: number; y: number }> = {
+  Francia: { x: 190, y: 95 },
+  Italia: { x: 280, y: 132 },
+  Marocco: { x: 110, y: 210 },
+  Tunisia: { x: 245, y: 205 },
+  Egitto: { x: 475, y: 228 },
+  Libano: { x: 420, y: 170 },
+  Grecia: { x: 350, y: 140 },
+  Turchia: { x: 450, y: 130 },
+  Cipro: { x: 410, y: 190 },
+  Palestina: { x: 405, y: 185 },
+  Siria: { x: 445, y: 160 },
+  Algeria: { x: 165, y: 220 },
+  'Isole Baleari': { x: 170, y: 145 }
+};
+
 export function authenticateDemoUser(email: string, password: string) {
   const normalizedEmail = email.trim().toLowerCase();
   return demoUsers.find((user) => user.email === normalizedEmail && user.password === password) ?? null;
@@ -261,4 +390,8 @@ export function getStatusLabel(status: string) {
       draft: 'Bozza'
     }[status] ?? status
   );
+}
+
+export function getCountryPosition(countryName: string) {
+  return countryPositions[countryName] ?? { x: 300, y: 180 };
 }
