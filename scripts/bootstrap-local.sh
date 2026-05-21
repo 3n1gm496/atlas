@@ -59,7 +59,7 @@ EOF
 
 echo "==> Wrote ${LOCAL_ENV_FILE}"
 echo "==> Installing dependencies"
-(cd "${ROOT_DIR}" && npm install)
+(cd "${ROOT_DIR}" && npm ci --legacy-peer-deps)
 
 echo "==> Generating Prisma client"
 (cd "${ROOT_DIR}" && npx prisma generate --schema="${ROOT_DIR}/prisma/schema.prisma")

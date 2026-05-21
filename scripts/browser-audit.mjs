@@ -76,6 +76,25 @@ async function ensureDir(dir) {
   await fs.mkdir(dir, { recursive: true });
 }
 
+async function launchBrowserWithRetry() {
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await chromium.launch({
+        headless: true,
+        chromiumSandbox: false,
+        args: ['--no-sandbox']
+      });
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function login(page, email, password) {
   await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(300);
@@ -223,11 +242,7 @@ async function main() {
   await fs.rm(outputRoot, { recursive: true, force: true });
   await ensureDir(outputRoot);
 
-  const browser = await chromium.launch({
-    headless: true,
-    chromiumSandbox: false,
-    args: ['--no-sandbox']
-  });
+  const browser = await launchBrowserWithRetry();
   const summary = [];
 
   const filterRoutes = (routes) => (routeFilter.size > 0 ? routes.filter((route) => routeFilter.has(route)) : routes);
