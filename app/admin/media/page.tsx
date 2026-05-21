@@ -1,17 +1,20 @@
-import { prisma } from '@/lib/prisma';
 import { MediaManager } from '@/components/admin/media-manager';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getMediaLibrary } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminMediaPage() {
-  const media: Awaited<ReturnType<typeof prisma.mediaAsset.findMany>> = await prisma.mediaAsset.findMany({ orderBy: { id: 'desc' }, take: 50 }).catch(() => []);
+  const { media, entries } = await getMediaLibrary();
 
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-3">
-        <p className="atlas-kicker">Asset registry</p>
-        <h1 className="atlas-title">Media library</h1>
-      </div>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow="Admin / Media"
+        title="Media library"
+        description="Manage imported dataset assets and manual editorial media."
+        breadcrumb="Admin / Media"
+      />
       <MediaManager
         initialItems={media.map((item) => ({
           id: item.id,
@@ -20,8 +23,8 @@ export default async function AdminMediaPage() {
           altText: item.altText,
           entryId: item.entryId
         }))}
+        entryOptions={entries.map((entry) => ({ id: entry.id, label: entry.title }))}
       />
-      {media.length === 0 ? <div className="atlas-empty">Nessun media asset disponibile.</div> : null}
     </section>
   );
 }

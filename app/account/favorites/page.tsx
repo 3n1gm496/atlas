@@ -1,47 +1,24 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
-import { demoEntries } from '@/lib/demo-content';
 import { FavoritesManager } from '@/components/account/favorites-manager';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+import { getFavoriteEntries } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
-type FavoriteWithEntry = Prisma.FavoriteGetPayload<{ include: { entry: true } }>;
-
 export default async function AccountFavoritesPage() {
   const user = await getCurrentUser();
-  let favorites: FavoriteWithEntry[] = [];
-
-  if (user) {
-    favorites = await prisma.favorite
-      .findMany({ where: { userId: user.id }, include: { entry: true }, take: 50 })
-      .catch(() =>
-        demoEntries.slice(0, 3).map((entry) => ({
-          id: `favorite-${entry.id}`,
-          userId: user.id,
-          entryId: entry.id,
-          entry: {
-            id: entry.id,
-            slug: entry.slug,
-            title: entry.title,
-            abstract: entry.abstract,
-            description: entry.description,
-            status: entry.status,
-            countryId: 'demo-country',
-            contributorId: entry.contributorId,
-            canonicalLanguage: entry.canonicalLanguage,
-            visibility: 'public',
-            featured: entry.featured,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        } as FavoriteWithEntry))
-      );
-  }
+  const favorites = user ? await getFavoriteEntries(user.id) : [];
+  const { t } = getI18n();
 
   return (
-    <section className="space-y-4">
-      <h1 className="atlas-title">Preferiti</h1>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('accountFavorites.eyebrow')}
+        title={t('accountFavorites.title')}
+        description={t('accountFavorites.description')}
+        breadcrumb={t('accountFavorites.breadcrumb')}
+      />
       <FavoritesManager
         initialItems={favorites.map((f) => ({
           id: f.id,

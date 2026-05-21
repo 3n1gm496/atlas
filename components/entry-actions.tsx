@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useI18n } from '@/components/i18n-provider';
 
 type Props = {
   entryId: string;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function EntryActions({ entryId, initialFavorite, canSubmit, canFavorite }: Props) {
+  const { t } = useI18n();
   const [favorite, setFavorite] = useState(initialFavorite);
   const [status, setStatus] = useState('');
 
@@ -24,28 +26,28 @@ export function EntryActions({ entryId, initialFavorite, canSubmit, canFavorite 
   }
 
   async function submitForReview() {
-    setStatus('Invio in corso...');
+    setStatus(t('entryActions.submitting'));
     const response = await fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entryId })
     });
     const data = await response.json();
-    setStatus(response.ok ? 'Entry inviata alla review.' : data.error ?? 'Errore durante l invio.');
+    setStatus(response.ok ? t('entryActions.submitted') : data.error?.message ?? t('entryActions.error'));
   }
 
   return (
     <div className="atlas-card space-y-3">
-      <p className="atlas-kicker">Azioni rapide</p>
+      <p className="atlas-kicker">{t('entryActions.kicker')}</p>
       <div className="flex flex-wrap gap-3">
         {canFavorite ? (
           <button onClick={toggleFavorite} className="atlas-link-secondary" type="button">
-            {favorite ? 'Rimuovi preferito' : 'Aggiungi ai preferiti'}
+            {favorite ? t('entryActions.removeFavorite') : t('entryActions.addFavorite')}
           </button>
         ) : null}
         {canSubmit ? (
           <button onClick={submitForReview} className="atlas-link-primary" type="button">
-            Invia a review
+            {t('entryActions.sendToReview')}
           </button>
         ) : null}
       </div>

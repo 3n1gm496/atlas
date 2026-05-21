@@ -1,49 +1,52 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getRequestUser } from '@/lib/auth/request-user';
+import { AtlasApiError, apiSuccess, handleApiError } from '@/lib/http/api';
+
+export const dynamic = 'force-dynamic';
 
 const favoriteSchema = z.object({
   entryId: z.string().min(1)
 });
 
 export async function POST(req: NextRequest) {
-  const user = await getRequestUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const user = await getRequestUser();
+    if (!user) throw new AtlasApiError(401, 'unauthorized', 'Authentication required');
 
-  const { entryId } = favoriteSchema.parse(await req.json());
-  if (String(user.id).startsWith('demo-')) {
-    return NextResponse.json({ ok: true, demo: true, entryId });
+    const { entryId } = favoriteSchema.parse(await req.json());
+    const favorite = await prisma.favorite.upsert({
+      where: { id: `${user.id}:${entryId}` },
+      update: {},
+      create: {
+        id: `${user.id}:${entryId}`,
+        userId: user.id,
+        entryId
+      }
+    }).catch(async () => {
+      const existing = await prisma.favorite.findFirst({ where: { userId: user.id, entryId } });
+      return existing ?? prisma.favorite.create({ data: { userId: user.id, entryId } });
+    });
+
+    return apiSuccess(favorite);
+  } catch (error) {
+    return handleApiError(error);
   }
-
-  const favorite = await prisma.favorite.upsert({
-    where: { id: `${user.id}:${entryId}` },
-    update: {},
-    create: {
-      id: `${user.id}:${entryId}`,
-      userId: user.id,
-      entryId
-    }
-  }).catch(async () => {
-    const existing = await prisma.favorite.findFirst({ where: { userId: user.id, entryId } });
-    return existing ?? prisma.favorite.create({ data: { userId: user.id, entryId } });
-  });
-
-  return NextResponse.json(favorite);
 }
 
 export async function DELETE(req: NextRequest) {
-  const user = await getRequestUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const user = await getRequestUser();
+    if (!user) throw new AtlasApiError(401, 'unauthorized', 'Authentication required');
 
-  const { entryId } = favoriteSchema.parse(await req.json());
-  if (String(user.id).startsWith('demo-')) {
-    return NextResponse.json({ ok: true, demo: true, entryId });
+    const { entryId } = favoriteSchema.parse(await req.json());
+    await prisma.favorite.deleteMany({
+      where: { userId: user.id, entryId }
+    });
+
+    return apiSuccess({ ok: true });
+  } catch (error) {
+    return handleApiError(error);
   }
-
-  await prisma.favorite.deleteMany({
-    where: { userId: user.id, entryId }
-  });
-
-  return NextResponse.json({ ok: true });
 }

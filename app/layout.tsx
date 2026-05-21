@@ -1,17 +1,33 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Cormorant_Garamond, Manrope } from 'next/font/google';
 import Script from 'next/script';
 import { Nav } from '@/components/nav';
 import { Providers } from '@/components/providers';
+import { getI18n } from '@/lib/i18n/server';
+
+const displayFont = Cormorant_Garamond({
+  subsets: ['latin'],
+  variable: '--font-atlas-display',
+  weight: ['500', '600', '700']
+});
+
+const bodyFont = Manrope({
+  subsets: ['latin'],
+  variable: '--font-atlas-body',
+  weight: ['400', '500', '600', '700']
+});
 
 export const metadata: Metadata = {
-  title: 'ATLAS - Cartografia dinamica delle scritture digitali della moda',
-  description: 'Piattaforma di ricerca e archivio partecipativo per le scritture digitali della moda.'
+  title: 'ANTICORES',
+  description: 'A cartography of digital fashion aesthetics.'
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const { locale, t } = getI18n();
+
   return (
-    <html lang="it">
+    <html lang={locale} className={`${displayFont.variable} ${bodyFont.variable}`}>
       <head>
         <link
           rel="stylesheet"
@@ -38,14 +54,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="beforeInteractive"
         />
       </head>
-      <body className="overflow-x-hidden">
-        <Providers>
+      <body className="overflow-x-hidden font-[family-name:var(--font-atlas-body)]">
+        <Providers locale={locale}>
+          <a href="#main-content" className="atlas-skip-link">
+            {t('common.skipToContent')}
+          </a>
           <Nav />
-          <main className="container py-8 sm:py-10">{children}</main>
-          <footer className="mt-14 border-t border-atlas-muted bg-white/50 py-8">
-            <div className="container flex flex-col gap-3 text-xs text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
-              <p>ATLAS · Archivio critico delle scritture digitali della moda mediterranea.</p>
-              <p>Ricerca, curatela, workflow editoriale e contributi distribuiti.</p>
+          <main id="main-content" className="container py-8 sm:py-10">
+            {children}
+          </main>
+          <footer className="mt-14 border-t border-[rgba(112,83,61,0.15)] bg-[rgba(255,251,247,0.45)] py-8">
+            <div className="container flex flex-col gap-3 text-xs text-[color:var(--atlas-ink-3)] sm:flex-row sm:items-center sm:justify-between">
+              <p>{t('footer.line1')}</p>
+              <p>{t('footer.line2')}</p>
             </div>
           </footer>
         </Providers>

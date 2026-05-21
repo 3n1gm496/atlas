@@ -1,42 +1,32 @@
-import { prisma } from '@/lib/prisma';
-import { demoEntries } from '@/lib/demo-content';
+import { redirect } from 'next/navigation';
+import { PageIntentHeader } from '@/components/page-intent-header';
 import { ReviewBoard } from '@/components/review-board';
+import { getCurrentUser } from '@/lib/auth/session';
+import { getI18n } from '@/lib/i18n/server';
+import { getEditorialAssignees, getReviewQueue } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ReviewPage() {
-  const queue: Awaited<ReturnType<typeof prisma.entry.findMany>> = await prisma.entry
-    .findMany({ where: { status: { in: ['submitted', 'under_review', 'changes_requested'] } }, take: 40, orderBy: { updatedAt: 'desc' } })
-    .catch(() =>
-      demoEntries
-        .filter((entry) => ['submitted', 'under_review', 'changes_requested'].includes(entry.status))
-        .map((entry) => ({
-          id: entry.id,
-          slug: entry.slug,
-          title: entry.title,
-          status: entry.status,
-          abstract: entry.abstract,
-          description: entry.description,
-          countryId: 'demo-country',
-          contributorId: entry.contributorId,
-          canonicalLanguage: entry.canonicalLanguage,
-          visibility: 'public',
-          featured: entry.featured,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })) as Awaited<ReturnType<typeof prisma.entry.findMany>>
-    );
+  const user = await getCurrentUser();
+  if (!user || !['research_admin', 'super_admin'].includes(user.role.name)) {
+    redirect('/account');
+  }
+
+  const [queue, reviewers] = await Promise.all([getReviewQueue(), getEditorialAssignees()]);
+  const { t } = getI18n();
 
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-3">
-        <p className="atlas-kicker">Review board</p>
-        <h1 className="atlas-title">Coda revisione editoriale</h1>
-        <p className="text-sm text-neutral-700">Priorita, stati e contenuti che richiedono intervento di editor o amministrazione.</p>
-      </div>
-      <div className="space-y-2">
-        {queue.length === 0 ? <div className="atlas-empty">Nessuna entry in review.</div> : <ReviewBoard initialItems={queue.map((e) => ({ id: e.id, title: e.title, status: e.status, slug: e.slug }))} />}
-      </div>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('review.page.eyebrow')}
+        title={t('review.page.title')}
+        description={t('review.page.description')}
+        breadcrumb={t('review.page.breadcrumb')}
+        actions={[{ href: '/admin', label: t('review.page.adminAction'), variant: 'secondary' }]}
+      />
+
+      {queue.length === 0 ? <div className="atlas-empty">{t('review.page.empty')}</div> : <ReviewBoard initialItems={queue} reviewers={reviewers} />}
     </section>
   );
 }

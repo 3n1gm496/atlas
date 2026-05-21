@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getRequestUser } from '@/lib/auth/request-user';
+import { AtlasApiError, apiSuccess, handleApiError } from '@/lib/http/api';
+
+export const dynamic = 'force-dynamic';
 
 const notificationSchema = z.object({
   notificationId: z.string().min(1),
@@ -9,18 +12,18 @@ const notificationSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest) {
-  const user = await getRequestUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const user = await getRequestUser();
+    if (!user) throw new AtlasApiError(401, 'unauthorized', 'Authentication required');
 
-  const { notificationId, read } = notificationSchema.parse(await req.json());
-  if (String(user.id).startsWith('demo-')) {
-    return NextResponse.json({ id: notificationId, read, demo: true });
+    const { notificationId, read } = notificationSchema.parse(await req.json());
+    const updated = await prisma.notification.updateMany({
+      where: { id: notificationId, userId: user.id },
+      data: { read }
+    });
+
+    return apiSuccess({ ok: updated.count > 0 });
+  } catch (error) {
+    return handleApiError(error);
   }
-
-  const updated = await prisma.notification.updateMany({
-    where: { id: notificationId, userId: user.id },
-    data: { read }
-  });
-
-  return NextResponse.json({ ok: updated.count > 0 });
 }

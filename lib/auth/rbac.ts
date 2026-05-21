@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { AtlasApiError } from '@/lib/http/api';
 
 export const rolePriority = {
   public_visitor: 0,
@@ -18,4 +19,10 @@ export function getRoleFromRequest(req: NextRequest): AtlasRole {
 
 export function hasRequiredRole(current: AtlasRole, required: AtlasRole): boolean {
   return rolePriority[current] >= rolePriority[required];
+}
+
+export function assertRole(current: AtlasRole, required: AtlasRole) {
+  if (!hasRequiredRole(current, required)) {
+    throw new AtlasApiError(403, 'forbidden', 'Insufficient permissions');
+  }
 }

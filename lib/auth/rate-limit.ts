@@ -1,3 +1,5 @@
+import type { NextRequest } from 'next/server';
+
 const bucket = new Map<string, { count: number; resetAt: number }>();
 
 export function checkRateLimit(key: string, limit = 20, windowMs = 60_000) {
@@ -16,4 +18,10 @@ export function checkRateLimit(key: string, limit = 20, windowMs = 60_000) {
   state.count += 1;
   bucket.set(key, state);
   return { ok: true, remaining: limit - state.count };
+}
+
+export function getRateLimitKey(req: NextRequest, prefix: string) {
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  const clientIp = forwardedFor?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'local';
+  return `${prefix}:${clientIp}`;
 }

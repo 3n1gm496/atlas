@@ -1,104 +1,112 @@
 import Link from 'next/link';
-import { demoCollections, demoEntries, demoUsers } from '@/lib/demo-content';
+import { getPublicHomepageData } from '@/lib/services/public-content';
+import { getI18n } from '@/lib/i18n/server';
 
-export default function HomePage() {
-  const publishedEntries = demoEntries.filter((entry) => entry.status === 'published');
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const { t } = getI18n();
+  const { stats, featuredEntries } = await getPublicHomepageData();
 
   return (
-    <section className="space-y-8">
-      <div className="atlas-card atlas-hero grid gap-8 lg:grid-cols-[1.5fr_0.9fr]">
-        <div className="space-y-5">
-          <span className="atlas-chip">Digital Humanities · Fashion Studies · Mediterraneo</span>
-          <div className="space-y-3">
-            <p className="atlas-kicker">Archivio partecipativo</p>
-            <h1 className="atlas-title">Cartografia viva delle scritture digitali della moda</h1>
-            <p className="max-w-3xl text-base text-neutral-700 sm:text-lg">
-              ATLAS unisce ricerca, curatela e contributi distribuiti per osservare come immagini, testi, hashtag e pratiche
-              sartoriali costruiscono geografie culturali online.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/map" className="atlas-link-primary">
-              Esplora la mappa
-            </Link>
-            <Link href="/archive" className="atlas-link-secondary">
-              Consulta archivio
-            </Link>
-            <Link href="/submit/new" className="atlas-link-secondary">
-              Invia una entry
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-          <article className="atlas-stat">
-            <p className="text-sm text-neutral-600">Entry in evidenza</p>
-            <p className="mt-2 text-3xl font-semibold">{publishedEntries.length}</p>
-          </article>
-          <article className="atlas-stat">
-            <p className="text-sm text-neutral-600">Utenti e ruoli attivi</p>
-            <p className="mt-2 text-3xl font-semibold">{demoUsers.length}</p>
-          </article>
-          <article className="atlas-stat">
-            <p className="text-sm text-neutral-600">Percorsi curatoriali</p>
-            <p className="mt-2 text-3xl font-semibold">{demoCollections.length}</p>
-          </article>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {[
-          ['Geografie', 'Dalle capitali mediterranee ai microarchivi di piattaforma, ogni entry e leggibile come nodo territoriale.'],
-          ['Tassonomie', 'Classificazione multilingue pronta per ricerca qualitativa, filtri esplorativi e percorsi curatoriale.'],
-          ['Workflow', 'Contributor, editor, admin e ricerca lavorano su dashboard distinte con segnali chiari di avanzamento.']
-        ].map(([title, text]) => (
-          <article key={title} className="atlas-card">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <p className="mt-2 text-sm text-neutral-700">{text}</p>
-          </article>
-        ))}
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <section className="atlas-card space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="atlas-kicker">Adesso in archivio</p>
-              <h2 className="text-2xl font-semibold">Entry da scoprire</h2>
+    <section className="space-y-10 overflow-x-clip">
+      <section className="atlas-poster-panel overflow-hidden px-6 py-8 md:px-8 md:py-10">
+        <div className="grid gap-8 xl:grid-cols-[1.18fr_0.82fr]">
+          <div className="space-y-6">
+            <span className="atlas-chip">{t('brand.baseline')}</span>
+            <div className="space-y-5">
+              <p className="atlas-kicker">{t('brand.name')}</p>
+              <h1 className="atlas-title max-w-5xl text-white">{t('home.title')}</h1>
+              <p className="atlas-lead max-w-3xl">{t('home.lead')}</p>
             </div>
-            <Link href="/archive" className="text-sm font-medium underline">
-              Vedi tutto
+            <div className="atlas-stat-rail border-t border-white/10 pt-5">
+              <article>
+                <p className="atlas-meta">{t('home.statsPublished')}</p>
+                <p className="mt-2 text-3xl font-semibold text-white">{stats.publishedCount}</p>
+              </article>
+              <article>
+                <p className="atlas-meta">{t('home.statsPeople')}</p>
+                <p className="mt-2 text-3xl font-semibold text-white">{stats.usersCount}</p>
+              </article>
+              <article>
+                <p className="atlas-meta">{t('home.statsCollections')}</p>
+                <p className="mt-2 text-3xl font-semibold text-white">{stats.collectionsCount}</p>
+              </article>
+            </div>
+          </div>
+
+          <div className="grid content-between gap-6">
+            <div className="space-y-3">
+              <p className="atlas-kicker">{t('home.entryLabel')}</p>
+              <h2 className="atlas-section-title text-4xl text-white">{t('brand.subtitle')}</h2>
+              <p className="atlas-body max-w-xl">{t('home.lead')}</p>
+            </div>
+
+            <div className="atlas-plain-list">
+              {[
+                [t('home.mapTitle'), t('home.mapDescription'), '/map'],
+                [t('home.archiveTitle'), t('home.archiveDescription'), '/archive'],
+                [t('home.collectionsTitle'), t('home.collectionsDescription'), '/collections']
+              ].map(([title, text, href]) => (
+              <Link key={title} href={href} className="atlas-plain-row text-white">
+                <div className="flex min-w-0 items-start justify-between gap-4">
+                  <div className="min-w-0 space-y-2">
+                    <p className="font-[family-name:var(--font-atlas-display)] text-3xl font-semibold">{title}</p>
+                    <p className="text-sm leading-6 text-white/74">{text}</p>
+                  </div>
+                    <span className="atlas-chip border-white/16 bg-white/10 text-white">{t('common.open')}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+        <div className="atlas-dark-card space-y-5">
+          <div>
+            <p className="atlas-kicker">{t('home.whyKicker')}</p>
+            <h2 className="atlas-section-title text-4xl">{t('home.whyTitle')}</h2>
+          </div>
+          <p className="atlas-body max-w-3xl">{t('home.whyBody')}</p>
+        </div>
+
+        <div className="atlas-card space-y-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="atlas-kicker">{t('home.sectionLabel')}</p>
+              <h2 className="atlas-section-title">{t('home.sectionTitle')}</h2>
+            </div>
+            <Link href="/archive" className="atlas-link-secondary">
+              {t('home.openArchive')}
             </Link>
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {publishedEntries.slice(0, 4).map((entry) => (
-              <Link key={entry.id} href={`/entry/${entry.slug}`} className="rounded-2xl border border-atlas-muted bg-white p-4 transition hover:-translate-y-0.5">
-                <p className="text-xs uppercase tracking-wide text-neutral-500">
-                  {entry.countryName} · {entry.timePeriodLabel}
-                </p>
-                <h3 className="mt-2 font-semibold">{entry.title}</h3>
-                <p className="mt-2 text-sm text-neutral-700">{entry.abstract}</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {featuredEntries.slice(0, 4).map((entry, index) => (
+              <Link key={entry.id} href={`/entry/${entry.slug}`} className={`${index === 0 ? 'atlas-feature-tile md:col-span-2' : 'atlas-result-card'}`}>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="atlas-meta">
+                      {entry.countryName} · {entry.placeName ?? t('home.defaultPlace')}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {entry.editorialNote ? <span className="atlas-chip">Editorial fallback</span> : null}
+                      {entry.featured || index === 0 ? <span className="atlas-chip atlas-chip-active">{t('home.featured')}</span> : null}
+                      {entry.sheetKey ? <span className="atlas-chip">{entry.sheetKey}</span> : null}
+                      {entry.sheetRowNumber ? <span className="atlas-chip">riga {entry.sheetRowNumber}</span> : null}
+                      <span className="atlas-chip">{entry.mediaAssetCount} media</span>
+                    </div>
+                </div>
+                <h3 className="mt-3 font-[family-name:var(--font-atlas-display)] text-3xl font-semibold leading-tight text-[color:var(--atlas-ink-1)]">
+                  {entry.title}
+                </h3>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--atlas-ink-2)]">{entry.abstract}</p>
+                <p className="mt-5 atlas-meta">{entry.timePeriodLabel ?? t('home.defaultPeriod')}</p>
               </Link>
             ))}
           </div>
-        </section>
-
-        <section className="atlas-card space-y-4">
-          <div>
-            <p className="atlas-kicker">Accessi demo</p>
-            <h2 className="text-2xl font-semibold">Ruoli pronti da testare</h2>
-          </div>
-          <div className="space-y-3">
-            {demoUsers.map((user) => (
-              <article key={user.id} className="rounded-2xl border border-atlas-muted bg-white p-4">
-                <p className="font-semibold">{user.displayName}</p>
-                <p className="mt-1 text-sm text-neutral-600">{user.email}</p>
-                <p className="mt-2 text-xs uppercase tracking-wide text-neutral-500">{user.roleName}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </section>
   );
 }

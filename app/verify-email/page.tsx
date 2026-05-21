@@ -1,13 +1,16 @@
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+
 export default function VerifyEmailPage() {
+  const { t } = getI18n();
+
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-4">
-        <p className="atlas-kicker">Activation</p>
-        <h1 className="atlas-title">Verifica email</h1>
-        <div className="atlas-card text-sm text-neutral-700">
-          Controlla la tua casella email e conferma il link di verifica per attivare il profilo e accedere al workspace.
-        </div>
-      </div>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('auth.verify.eyebrow')}
+        title={t('auth.verify.title')}
+        description={t('auth.verify.description')}
+      />
     </section>
   );
 }

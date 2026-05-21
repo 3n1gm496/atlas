@@ -1,14 +1,19 @@
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+
 export default function ResetPasswordPage() {
+  const { t } = getI18n();
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-4">
-        <p className="atlas-kicker">Password reset</p>
-        <h1 className="atlas-title">Imposta nuova password</h1>
-      </div>
-      <form className="atlas-card grid gap-3 max-w-xl">
-        <input type="password" placeholder="Nuova password" className="rounded-2xl border border-atlas-muted px-4 py-3" />
-        <input type="password" placeholder="Conferma password" className="rounded-2xl border border-atlas-muted px-4 py-3" />
-        <button type="button" className="atlas-link-primary">Aggiorna password</button>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('auth.reset.eyebrow')}
+        title={t('auth.reset.title')}
+        description={t('auth.reset.description')}
+      />
+      <form className="atlas-dark-card grid max-w-xl gap-3">
+        <input type="password" placeholder={t('auth.reset.newPassword')} className="atlas-input" />
+        <input type="password" placeholder={t('auth.reset.confirmPassword')} className="atlas-input" />
+        <button type="button" className="atlas-link-primary">{t('auth.reset.submit')}</button>
       </form>
     </section>
   );

@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { AtlasApiError, apiSuccess, handleApiError } from '@/lib/http/api';
+import { checkRateLimit, getRateLimitKey } from '@/lib/auth/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,22 +15,27 @@ const registerSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const limit = checkRateLimit(getRateLimitKey(req, 'register'), 5, 60_000);
+    if (!limit.ok) {
+      throw new AtlasApiError(429, 'rate_limited', 'Too many registration attempts', { retryAfterMs: limit.retryAfterMs });
+    }
+
     const body = await req.json();
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+      throw new AtlasApiError(400, 'validation_error', parsed.error.issues[0].message, parsed.error.issues);
     }
 
     const { displayName, email, password } = parsed.data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: 'Email già registrata' }, { status: 409 });
+      throw new AtlasApiError(409, 'email_conflict', 'Email già registrata');
     }
 
     const contributorRole = await prisma.role.findFirst({ where: { name: 'contributor' } });
     if (!contributorRole) {
-      return NextResponse.json({ error: 'Ruolo non trovato' }, { status: 500 });
+      throw new AtlasApiError(500, 'role_missing', 'Ruolo contributor non trovato');
     }
 
     const passwordHash = await hash(password, 12);
@@ -42,9 +49,8 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
-  } catch (err) {
-    console.error('[register]', err);
-    return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
+    return apiSuccess({ id: user.id, email: user.email }, { status: 201 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

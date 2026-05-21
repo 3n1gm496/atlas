@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { hasRequiredRole } from '../../lib/auth/rbac';
-import { checkRateLimit } from '../../lib/auth/rate-limit';
+import { checkRateLimit, getRateLimitKey } from '../../lib/auth/rate-limit';
 
 describe('rbac', () => {
   it('allows editor capabilities for super_admin', () => {
@@ -18,5 +18,14 @@ describe('rate limiting', () => {
     checkRateLimit(key, 1, 1000);
     const second = checkRateLimit(key, 1, 1000);
     expect(second.ok).toBe(false);
+  });
+
+  it('derives a stable key from forwarded headers', () => {
+    const req = new Request('http://localhost', {
+      headers: {
+        'x-forwarded-for': '203.0.113.10, 10.0.0.1'
+      }
+    });
+    expect(getRateLimitKey(req as never, 'register')).toBe('register:203.0.113.10');
   });
 });

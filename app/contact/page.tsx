@@ -1,26 +1,40 @@
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+
 export default function ContactPage() {
+  const { t } = getI18n();
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-4">
-        <p className="atlas-kicker">Reach out</p>
-        <h1 className="atlas-title">Contatti</h1>
-        <p className="text-sm text-neutral-700">
-          Per richieste editoriali, partnership, accesso ai dataset o collaborazioni di ricerca scrivi a{' '}
-          <a className="underline" href="mailto:atlas@incursivefashionheritage.com">atlas@incursivefashionheritage.com</a>.
-        </p>
-      </div>
-      <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-        <section className="atlas-card space-y-3 text-sm text-neutral-700">
-          <p><strong>Email editoriale</strong><br />atlas@incursivefashionheritage.com</p>
-          <p><strong>Ambiti</strong><br />Curatela, revisione, dataset, ricerca, partnership culturali.</p>
-          <p><strong>Tempi di risposta</strong><br />Indicativamente 3-5 giorni lavorativi.</p>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('contact.eyebrow')}
+        title={t('contact.title')}
+        description={t('contact.description')}
+      />
+      <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+        <section className="atlas-dark-card min-w-0 space-y-3 text-sm">
+          <p className="break-words"><strong>{t('contact.info.email')}</strong><br />atlas@incursivefashionheritage.com</p>
+          <p className="break-words"><strong>{t('contact.info.topics')}</strong><br />{t('contact.info.topicsBody')}</p>
+          <p className="break-words"><strong>{t('contact.info.response')}</strong><br />{t('contact.info.responseBody')}</p>
+          <p className="break-words"><strong>{t('contact.info.quick')}</strong><br />{t('contact.info.quickBody')}</p>
         </section>
-        <form className="atlas-card grid gap-3 md:grid-cols-2" action="mailto:atlas@incursivefashionheritage.com" method="post" encType="text/plain">
-          <input name="name" required placeholder="Nome" className="rounded-2xl border border-atlas-muted px-4 py-3" />
-          <input name="email" type="email" required placeholder="Email" className="rounded-2xl border border-atlas-muted px-4 py-3" />
-          <input name="subject" placeholder="Oggetto" className="md:col-span-2 rounded-2xl border border-atlas-muted px-4 py-3" />
-          <textarea name="message" required placeholder="Messaggio" rows={6} className="md:col-span-2 rounded-2xl border border-atlas-muted px-4 py-3" />
-          <button className="w-fit atlas-link-primary">Invia</button>
+        <form className="atlas-card grid min-w-0 gap-3 lg:grid-cols-2" action="mailto:atlas@incursivefashionheritage.com" method="post" encType="text/plain">
+          <label className="grid min-w-0 gap-1 text-sm">
+            <span>{t('contact.form.name')}</span>
+            <input name="name" autoComplete="name" required placeholder={t('contact.form.namePlaceholder')} className="atlas-input" />
+          </label>
+          <label className="grid min-w-0 gap-1 text-sm">
+            <span>{t('contact.form.email')}</span>
+            <input name="email" type="email" autoComplete="email" required placeholder={t('contact.form.emailPlaceholder')} className="atlas-input" />
+          </label>
+          <label className="grid min-w-0 gap-1 text-sm lg:col-span-2">
+            <span>{t('contact.form.subject')}</span>
+            <input name="subject" placeholder={t('contact.form.subjectPlaceholder')} className="atlas-input" />
+          </label>
+          <label className="grid min-w-0 gap-1 text-sm lg:col-span-2">
+            <span>{t('contact.form.message')}</span>
+            <textarea name="message" required placeholder={t('contact.form.messagePlaceholder')} rows={6} className="atlas-textarea" />
+          </label>
+          <button className="atlas-link-primary w-full lg:w-fit">{t('contact.form.send')}</button>
         </form>
       </div>
     </section>

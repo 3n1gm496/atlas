@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getRequestUser } from '@/lib/auth/request-user';
+import { AtlasApiError, apiSuccess, handleApiError } from '@/lib/http/api';
+
+export const dynamic = 'force-dynamic';
 
 const createSchema = z.object({
   label: z.string().min(2).max(80),
@@ -13,36 +16,36 @@ const deleteSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const user = await getRequestUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const user = await getRequestUser();
+    if (!user) throw new AtlasApiError(401, 'unauthorized', 'Authentication required');
 
-  const body = createSchema.parse(await req.json());
-  if (String(user.id).startsWith('demo-')) {
-    return NextResponse.json({ id: `demo-${Date.now()}`, ...body, userId: user.id, demo: true });
+    const body = createSchema.parse(await req.json());
+    const search = await prisma.savedSearch.create({
+      data: {
+        userId: user.id,
+        label: body.label,
+        query: body.query
+      }
+    });
+
+    return apiSuccess(search, { status: 201 });
+  } catch (error) {
+    return handleApiError(error);
   }
-
-  const search = await prisma.savedSearch.create({
-    data: {
-      userId: user.id,
-      label: body.label,
-      query: body.query
-    }
-  });
-
-  return NextResponse.json(search, { status: 201 });
 }
 
 export async function DELETE(req: NextRequest) {
-  const user = await getRequestUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const user = await getRequestUser();
+    if (!user) throw new AtlasApiError(401, 'unauthorized', 'Authentication required');
 
-  const { id } = deleteSchema.parse(await req.json());
-  if (String(user.id).startsWith('demo-')) {
-    return NextResponse.json({ ok: true, demo: true });
+    const { id } = deleteSchema.parse(await req.json());
+    await prisma.savedSearch.deleteMany({
+      where: { id, userId: user.id }
+    });
+    return apiSuccess({ ok: true });
+  } catch (error) {
+    return handleApiError(error);
   }
-
-  await prisma.savedSearch.deleteMany({
-    where: { id, userId: user.id }
-  });
-  return NextResponse.json({ ok: true });
 }

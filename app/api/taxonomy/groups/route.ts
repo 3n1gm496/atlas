@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { apiSuccess } from '@/lib/http/api';
 
 export async function GET() {
   const groups = await prisma.taxonomyGroup.findMany({
@@ -8,5 +8,5 @@ export async function GET() {
     orderBy: { slug: 'asc' }
   });
 
-  return NextResponse.json(groups);
+  return apiSuccess(groups);
 }

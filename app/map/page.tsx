@@ -1,102 +1,58 @@
 export const dynamic = 'force-dynamic';
 
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { demoEntries, getStatusLabel } from '@/lib/demo-content';
 import { LeafletMapExplorer } from '@/components/leaflet-map-explorer';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getCollectionDetail, getMapEntries } from '@/lib/services/public-content';
+import { getI18n } from '@/lib/i18n/server';
 
-async function loadPublishedEntries() {
-  try {
-    const items = await prisma.entry.findMany({
-      where: { status: 'published' },
-      include: { country: true },
-      take: 100,
-      orderBy: [{ featured: 'desc' }, { updatedAt: 'desc' }]
-    });
-    if (items.length) return items;
-  } catch {
-    // Fall through to demo entries.
-  }
-
-  return demoEntries
-    .filter((entry) => entry.status === 'published')
-    .map((entry) => ({
-      id: entry.id,
-      slug: entry.slug,
-      title: entry.title,
-      abstract: entry.abstract,
-      featured: entry.featured,
-      status: entry.status,
-      country: { name: entry.countryName },
-      timePeriodLabel: entry.timePeriodLabel,
-      placeName: entry.placeName,
-      lat: entry.lat,
-      lng: entry.lng
-    }));
-}
-
-export default async function MapPage() {
-  const entries = await loadPublishedEntries();
-
-  const byCountry = entries.reduce<Record<string, number>>((acc, entry) => {
-    acc[entry.country.name] = (acc[entry.country.name] ?? 0) + 1;
-    return acc;
-  }, {});
+export default async function MapPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ collection?: string }>;
+}) {
+  const { t } = getI18n();
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const [entries, collection] = await Promise.all([
+    getMapEntries(),
+    resolvedSearchParams.collection ? getCollectionDetail(resolvedSearchParams.collection) : Promise.resolve(null)
+  ]);
+  const visibleEntries = collection ? entries.filter((entry) => collection.entries.some((item) => item.entryId === entry.id)) : entries;
 
   return (
-    <section className="space-y-6">
-      <header className="atlas-card atlas-hero space-y-3">
-        <p className="atlas-kicker">Mappa dinamica</p>
-        <h1 className="text-3xl font-semibold">Geografie culturali da esplorare davvero</h1>
-        <p className="max-w-3xl text-sm text-neutral-700">
-          Leaflet ora guida l esplorazione con cluster automatici, filtri per territorio, timeline annuale, viste tematiche e focus diretto sulle schede.
-        </p>
-      </header>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('nav.map')}
+        title={collection ? t('mapPage.collectionTitle', { title: collection.title }) : t('mapPage.title')}
+        description={
+          collection
+            ? t('mapPage.collectionDescription')
+            : t('mapPage.description')
+        }
+        actions={[{ href: '/archive', label: t('nav.archive'), variant: 'secondary' }]}
+      />
 
-      {entries.length === 0 ? (
-        <div className="atlas-empty">Nessun dato disponibile al momento.</div>
+      {visibleEntries.length === 0 ? (
+        <div className="atlas-empty">{t('mapPage.empty')}</div>
       ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-3">
-            {Object.entries(byCountry).map(([country, count]) => (
-              <div key={country} className="atlas-stat">
-                <p className="text-sm text-neutral-600">{country}</p>
-                <p className="text-2xl font-semibold">{count}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            {entries.map((entry) => (
-              <article key={entry.id} className="atlas-card">
-                <p className="text-xs uppercase tracking-wide text-neutral-500">
-                  {entry.country.name} · {entry.placeName ?? 'Nodo territoriale'} · {getStatusLabel(entry.status)}
-                </p>
-                <h2 className="font-semibold">
-                  <Link href={`/entry/${entry.slug}`}>{entry.title}</Link>
-                </h2>
-                <p className="mt-2 text-sm text-neutral-700 line-clamp-2">{entry.abstract}</p>
-                <p className="mt-3 text-xs text-neutral-500">{entry.timePeriodLabel ?? 'Periodo in definizione'}</p>
-              </article>
-            ))}
-          </div>
-
-          <LeafletMapExplorer
-            entries={entries.map((entry) => ({
-              id: entry.id,
-              slug: entry.slug,
-              title: entry.title,
-              abstract: entry.abstract,
-              countryName: entry.country.name,
-              status: entry.status,
-              placeName: entry.placeName,
-              timePeriodLabel: entry.timePeriodLabel,
-              featured: entry.featured,
-              lat: entry.lat ?? 0,
-              lng: entry.lng ?? 0
-            }))}
-          />
-        </>
+        <LeafletMapExplorer
+          entries={visibleEntries.map((entry) => ({
+            id: entry.id,
+            slug: entry.slug,
+            title: entry.title,
+            abstract: entry.abstract,
+            countryName: entry.countryName,
+            placeName: entry.placeName,
+            timePeriodLabel: entry.timePeriodLabel,
+            featured: entry.featured,
+            sheetRowNumber: entry.sheetRowNumber,
+            sheetKey: entry.sheetKey,
+            mediaAssetCount: entry.mediaAssetCount,
+            taxonomyTerms: entry.taxonomyTerms,
+            taxonomyByGroup: entry.taxonomyByGroup,
+            lat: entry.lat ?? 0,
+            lng: entry.lng ?? 0
+          }))}
+        />
       )}
     </section>
   );

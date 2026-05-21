@@ -1,16 +1,9 @@
-# Production Readiness Checklist (ATLAS)
+# Production Readiness
 
-## Implemented
-- Typed API routes with Zod validation.
-- RBAC guards on sensitive endpoints.
-- Health endpoint with env/database checks.
-- Prisma migration + seed support.
-- CI pipeline for lint, typecheck, tests, build.
+This document is kept as a supporting operational note.
 
-## Still Missing Before 'Perfect Production'
-- Real authentication provider integration (Auth.js) replacing header-based role simulation.
-- Persistent distributed rate limit store (Redis) replacing in-memory bucket.
-- Object storage integration for media uploads (S3-compatible) with signed URLs.
-- Full i18n routing and translated UX copy coverage.
-- Complete E2E workflow suite (contributor -> review -> publish) in CI.
-- Observability stack (error tracking, structured logs, metrics dashboards).
+The canonical decision gate for an official launch/readiness decision is:
+
+- [Demo Readiness Program](./demo-readiness-program.md)
+
+Use the readiness program for sign-off. Keep this page only as a short reminder that a real public launch still needs production-specific decisions such as external auth, storage, observability, and dependency triage.

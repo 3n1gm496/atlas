@@ -1,55 +1,63 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
-import { demoEntries, getStatusLabel } from '@/lib/demo-content';
+import { getStatusLabel } from '@/lib/content/labels';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+import { getContributorDrafts } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SubmitPage() {
   const contributor = await getCurrentUser();
-  const drafts: Awaited<ReturnType<typeof prisma.entry.findMany>> = contributor
-    ? await prisma.entry
-        .findMany({ where: { contributorId: contributor.id }, orderBy: { updatedAt: 'desc' }, take: 30 })
-        .catch(() =>
-          demoEntries
-            .filter((entry) => entry.contributorId === contributor.id)
-            .map((entry) => ({
-              id: entry.id,
-              slug: entry.slug,
-              title: entry.title,
-              status: entry.status,
-              abstract: entry.abstract,
-              description: entry.description,
-              countryId: 'demo-country',
-              contributorId: entry.contributorId,
-              canonicalLanguage: entry.canonicalLanguage,
-              visibility: 'public',
-              featured: entry.featured,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            })) as Awaited<ReturnType<typeof prisma.entry.findMany>>
-        )
-    : [];
+  const drafts = contributor ? await getContributorDrafts(contributor.id) : [];
+  const draftCount = drafts.filter((entry) => entry.status === 'draft').length;
+  const submittedCount = drafts.filter((entry) => entry.status === 'submitted').length;
+  const changesRequestedCount = drafts.filter((entry) => entry.status === 'changes_requested').length;
+  const { t, locale } = getI18n();
 
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-4">
-        <p className="atlas-kicker">Contributor workspace</p>
-        <h1 className="atlas-title">Le tue submission</h1>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/submit/new" className="atlas-link-primary">Nuovo trend</Link>
-          <Link href="/review" className="atlas-link-secondary">Apri review board</Link>
-        </div>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('submitDashboard.eyebrow')}
+        title={t('submitDashboard.title')}
+        description={t('submitDashboard.description')}
+        breadcrumb={t('submitDashboard.breadcrumb')}
+        actions={[
+          { href: '/submit/new', label: t('submitDashboard.actions.new') },
+          { href: '/account/submissions', label: t('submitDashboard.actions.history'), variant: 'secondary' }
+        ]}
+      />
+      <div className="grid gap-3 md:grid-cols-3">
+        <article className="atlas-stat">
+          <p className="atlas-meta">{t('submitDashboard.stats.drafts')}</p>
+          <p className="mt-2 text-3xl font-semibold">{draftCount}</p>
+        </article>
+        <article className="atlas-stat">
+          <p className="atlas-meta">{t('submitDashboard.stats.submitted')}</p>
+          <p className="mt-2 text-3xl font-semibold">{submittedCount}</p>
+        </article>
+        <article className="atlas-stat">
+          <p className="atlas-meta">{t('submitDashboard.stats.changes')}</p>
+          <p className="mt-2 text-3xl font-semibold">{changesRequestedCount}</p>
+        </article>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        {drafts.map((e) => (
-          <div key={e.id} className="atlas-card text-sm">
-            <p className="font-semibold">{e.title}</p>
-            <p className="mt-2 text-neutral-600">{getStatusLabel(e.status)}</p>
+        {drafts.map((entry, index) => (
+          <div key={entry.id} className={index === 0 ? 'atlas-dark-card text-sm' : 'atlas-result-card text-sm'}>
+            <p className={`font-[family-name:var(--font-atlas-display)] text-3xl font-semibold ${index === 0 ? 'text-white' : 'text-[color:var(--atlas-ink-1)]'}`}>{entry.title}</p>
+            <p className={`mt-2 ${index === 0 ? 'text-white/78' : 'text-[color:var(--atlas-ink-2)]'}`}>{getStatusLabel(entry.status, locale)}</p>
+            <p className={`mt-3 text-xs ${index === 0 ? 'text-white/56' : 'text-[color:var(--atlas-ink-3)]'}`}>
+              {t('submitDashboard.updated')} {entry.updatedAt.toLocaleDateString(locale)}
+            </p>
+            {['draft', 'changes_requested'].includes(entry.status) ? (
+              <Link href={`/submit/new?draft=${entry.id}`} className={`mt-4 inline-flex ${index === 0 ? 'atlas-link-secondary border-white/20 text-white hover:bg-white/10' : 'atlas-link-secondary'}`}>
+                {t('submitDashboard.resume')}
+              </Link>
+            ) : null}
           </div>
         ))}
       </div>
-      {drafts.length === 0 ? <div className="atlas-empty">Nessuna submission disponibile.</div> : null}
+      {drafts.length === 0 ? <div className="atlas-empty">{t('submitDashboard.empty')}</div> : null}
     </section>
   );
 }

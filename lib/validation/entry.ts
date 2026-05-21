@@ -11,17 +11,21 @@ export const entryStatuses = [
   'archived'
 ] as const;
 
-export const trendMetadataSchema = z.object({
-  typologicalObjective: z.array(z.string()).default([]),
-  thematicCategories: z.array(z.string()).default([]),
-  preferredPractices: z.array(z.string()).default([]),
-  culturalFramings: z.array(z.string()).default([]),
-  technoCreativeFormats: z.array(z.string()).default([]),
-  tones: z.array(z.string()).default([]),
-  scriptoIconicSubcategories: z.array(z.string()).default([]),
-  microforms: z.array(z.string()).default([]),
-  trendSummary: z.string().max(500).optional()
-});
+export const reviewPriorities = ['low', 'medium', 'high'] as const;
+
+export const trendMetadataSchema = z
+  .object({
+    typologicalObjective: z.array(z.string()).default([]),
+    thematicCategories: z.array(z.string()).default([]),
+    preferredPractices: z.array(z.string()).default([]),
+    culturalFramings: z.array(z.string()).default([]),
+    technoCreativeFormats: z.array(z.string()).default([]),
+    tones: z.array(z.string()).default([]),
+    scriptoIconicSubcategories: z.array(z.string()).default([]),
+    microforms: z.array(z.string()).default([]),
+    trendSummary: z.string().max(500).optional()
+  })
+  .catchall(z.array(z.string()));
 
 export const entryFilterSchema = z.object({
   q: z.string().trim().optional(),
@@ -55,12 +59,19 @@ export const entryPatchSchema = z.object({
   title: z.string().min(3).optional(),
   abstract: z.string().min(10).optional(),
   description: z.string().min(20).optional(),
+  countryId: z.string().min(1).optional(),
   canonicalLanguage: z.enum(['it', 'en', 'fr']).optional(),
   placeName: z.string().trim().optional(),
   lat: z.coerce.number().min(-90).max(90).optional(),
   lng: z.coerce.number().min(-180).max(180).optional(),
   sourceContext: z.string().trim().optional(),
   timePeriodLabel: z.string().trim().optional(),
+  taxonomyTermIds: z.array(z.string().min(1)).optional(),
+  keywords: z.array(z.string().min(2)).optional(),
+  hashtags: z.array(z.string().min(2)).optional(),
+  trendMetadata: trendMetadataSchema.optional(),
   status: z.enum(entryStatuses).optional(),
-  featured: z.boolean().optional()
+  featured: z.boolean().optional(),
+  reviewPriority: z.enum(reviewPriorities).optional(),
+  reviewDueAt: z.coerce.date().optional()
 });

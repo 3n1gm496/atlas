@@ -1,30 +1,29 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { fallbackGroups } from '@/lib/atlas-taxonomy';
 import { TaxonomyExplorer } from '@/components/taxonomy-explorer';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getTaxonomyGroups } from '@/lib/services/public-content';
+import { getI18n } from '@/lib/i18n/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TaxonomyPage() {
-  const groups = await prisma.taxonomyGroup
-    .findMany({ include: { terms: true }, orderBy: { slug: 'asc' } })
-    .catch(() => fallbackGroups);
+  const { t } = getI18n();
+  const groups = await getTaxonomyGroups();
 
   return (
     <section className="space-y-5">
-      <div className="atlas-card atlas-hero space-y-3">
-        <p className="atlas-kicker">Schema concettuale</p>
-        <h1 className="atlas-title">Esploratore tassonomie</h1>
-        <p className="max-w-3xl text-sm text-neutral-700">
-          Le tassonomie organizzano il corpus per tipologia, geografia, pratiche, tono e formati. Qui puoi navigare gruppi e termini in modo piu rapido e visivo.
-        </p>
-      </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        {groups.slice(0, 3).map((g) => (
-          <Link key={g.id} href={`/taxonomy/${g.slug}`} className="atlas-stat hover:bg-white">
-            <h2 className="font-semibold">{g.labelIt}</h2>
-            <p className="mt-2 text-xs text-neutral-600">/{g.slug}</p>
-            <p className="mt-2 text-sm text-neutral-700">{g.terms.length} termini pronti da esplorare</p>
+      <PageIntentHeader
+        eyebrow={t('taxonomy.eyebrow')}
+        title={t('taxonomy.title')}
+        description={t('taxonomy.description')}
+        actions={[{ href: '/archive', label: t('nav.archive'), variant: 'secondary' }]}
+      />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {groups.slice(0, 3).map((group, index) => (
+          <Link key={group.id} href={`/taxonomy/${group.slug}`} className={`${index === 0 ? 'atlas-dark-card block' : 'atlas-feature-tile'} min-w-0`}>
+            <p className={`break-words font-[family-name:var(--font-atlas-display)] text-3xl font-semibold md:text-4xl ${index === 0 ? 'text-white' : 'text-[color:var(--atlas-ink-1)]'}`}>{group.labelIt}</p>
+            <p className={`mt-2 break-all text-xs uppercase tracking-[0.16em] ${index === 0 ? 'text-white/60' : 'text-[color:var(--atlas-ink-3)]'}`}>/{group.slug}</p>
+            <p className={`mt-3 break-words text-sm leading-6 ${index === 0 ? 'text-white/80' : 'text-[color:var(--atlas-ink-2)]'}`}>{t('taxonomy.readyTerms', { count: group.terms.length })}</p>
           </Link>
         ))}
       </div>

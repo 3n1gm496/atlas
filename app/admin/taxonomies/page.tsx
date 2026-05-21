@@ -1,48 +1,70 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
-import { fallbackGroups } from '@/lib/atlas-taxonomy';
+import { DataTable } from '@/components/admin/data-table';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+import { getAdminTaxonomies } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
-type GroupWithTerms = Prisma.TaxonomyGroupGetPayload<{ include: { terms: true } }>;
-
 export default async function AdminTaxonomiesPage() {
-  const groups: GroupWithTerms[] = await prisma.taxonomyGroup
-    .findMany({ include: { terms: true }, orderBy: { slug: 'asc' } })
-    .catch(() =>
-      fallbackGroups.map((group) => ({
-        id: group.id,
-        slug: group.slug,
-        labelIt: group.labelIt,
-        labelEn: group.labelIt,
-        labelFr: group.labelIt,
-        terms: group.terms.map((term) => ({
-          id: term.id,
-          groupId: group.id,
-          slug: term.id,
-          labelIt: term.labelIt,
-          labelEn: term.labelIt,
-          labelFr: term.labelIt,
-          aliases: []
-        }))
-      })) as GroupWithTerms[]
-    );
+  const groups = await getAdminTaxonomies();
+  const totalTerms = groups.reduce((count, group) => count + group.terms.length, 0);
+  const { t } = getI18n();
 
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-3">
-        <p className="atlas-kicker">Taxonomy governance</p>
-        <h1 className="atlas-title">Gestione tassonomie</h1>
-      </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        {groups.map((g) => (
-          <div key={g.id} className="atlas-card text-sm">
-            <strong>{g.labelIt}</strong>
-            <p className="mt-2 text-neutral-700">/{g.slug}</p>
-            <p className="mt-2 text-xs uppercase tracking-wide text-neutral-500">{g.terms.length} termini</p>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('adminTaxonomies.eyebrow')}
+        title={t('adminTaxonomies.title')}
+        description={t('adminTaxonomies.description')}
+        breadcrumb={t('adminTaxonomies.breadcrumb')}
+      />
+      <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+        <section className="atlas-poster-panel space-y-5">
+          <div className="space-y-3">
+            <p className="atlas-kicker">{t('adminTaxonomies.hero.kicker')}</p>
+            <h2 className="atlas-section-title text-5xl text-white">{t('adminTaxonomies.hero.title')}</h2>
+            <p className="atlas-body max-w-2xl">{t('adminTaxonomies.hero.body')}</p>
           </div>
-        ))}
+          <div className="atlas-stat-rail border-t border-white/10 pt-5">
+            <article>
+              <p className="atlas-meta">{t('adminTaxonomies.stats.groups')}</p>
+              <p className="mt-2 text-3xl font-semibold text-white">{groups.length}</p>
+            </article>
+            <article>
+              <p className="atlas-meta">{t('adminTaxonomies.stats.terms')}</p>
+              <p className="mt-2 text-3xl font-semibold text-white">{totalTerms}</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="atlas-section-shell space-y-4">
+          <div>
+            <p className="atlas-kicker">{t('adminTaxonomies.watch.kicker')}</p>
+            <h2 className="text-2xl font-semibold text-[color:var(--atlas-ink-1)]">{t('adminTaxonomies.watch.title')}</h2>
+          </div>
+          <div className="atlas-plain-list">
+            <div className="atlas-plain-row">
+              <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('adminTaxonomies.watch.item1.title')}</p>
+              <p className="text-sm text-[color:var(--atlas-ink-2)]">{t('adminTaxonomies.watch.item1.body')}</p>
+            </div>
+            <div className="atlas-plain-row">
+              <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('adminTaxonomies.watch.item2.title')}</p>
+              <p className="text-sm text-[color:var(--atlas-ink-2)]">{t('adminTaxonomies.watch.item2.body')}</p>
+            </div>
+          </div>
+        </section>
       </div>
+      <DataTable
+        caption={t('adminTaxonomies.table.caption')}
+        rows={groups}
+        emptyMessage={t('adminTaxonomies.table.empty')}
+        columns={[
+          { key: 'labelIt', header: t('adminTaxonomies.table.group'), render: (g) => <span className="font-semibold">{g.labelIt}</span> },
+          { key: 'slug', header: t('adminTaxonomies.table.slug'), render: (g) => `/${g.slug}` },
+          { key: 'terms', header: t('adminTaxonomies.table.terms'), render: (g) => g.terms.length },
+          { key: 'translations', header: t('adminTaxonomies.table.translations'), render: (g) => `${g.labelEn} · ${g.labelFr}` }
+        ]}
+      />
     </section>
   );
 }

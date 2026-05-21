@@ -1,36 +1,36 @@
-import { prisma } from '@/lib/prisma';
-import { fallbackCountries, fallbackGroups } from '@/lib/atlas-taxonomy';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getCurrentUser } from '@/lib/auth/session';
+import { getSubmissionFormData } from '@/lib/services/public-content';
+import { getContributorResumeDraft } from '@/lib/services/workspaces';
+import { getI18n } from '@/lib/i18n/server';
 import { SubmitTrendForm } from './submit-trend-form';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SubmitNewPage() {
-  let countries: { id: string; name: string }[] = fallbackCountries;
-  let groups = fallbackGroups;
-
-  try {
-    const [dbCountries, dbGroups] = await Promise.all([
-      prisma.country.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
-      prisma.taxonomyGroup.findMany({
-        where: { slug: { in: ['typological', 'thematic', 'practices', 'framing', 'formats', 'tone', 'scripto', 'microforms'] } },
-        include: { terms: { select: { id: true, labelIt: true, groupId: true }, orderBy: { labelIt: 'asc' } } },
-        orderBy: { slug: 'asc' }
-      })
-    ]);
-
-    if (dbCountries.length) countries = dbCountries;
-    if (dbGroups.length) groups = dbGroups;
-  } catch {
-    // Use curated fallback taxonomy/countries to keep contribution UI fully functional.
-  }
+export default async function SubmitNewPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ draft?: string }>;
+}) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const { countries, groups } = await getSubmissionFormData();
+  const user = await getCurrentUser();
+  const resumeDraft = user ? await getContributorResumeDraft(user.id, resolvedSearchParams.draft) : null;
+  const { t } = getI18n();
 
   return (
     <section className="space-y-5">
-      <h1 className="atlas-title">Contribuisci: nuovo trend mappato</h1>
-      <p className="text-sm text-neutral-700">
-        Inserisci un trend culturale/digitale e seleziona i metadati necessari per classificazione cartografica e workflow editoriale.
-      </p>
-      <SubmitTrendForm countries={countries} groups={groups} />
+      <PageIntentHeader
+        eyebrow={t('submitNew.eyebrow')}
+        title={t('submitNew.title')}
+        description={t('submitNew.description')}
+        breadcrumb={t('submitNew.breadcrumb')}
+        actions={[
+          { href: '/submit', label: t('submitNew.actions.back'), variant: 'secondary' },
+          { href: '/archive', label: t('submitNew.actions.archive') }
+        ]}
+      />
+      <SubmitTrendForm countries={countries} groups={groups} initialDraft={resumeDraft} />
     </section>
   );
 }

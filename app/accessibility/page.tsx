@@ -1,25 +1,24 @@
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+
 export default function AccessibilityPage() {
+  const { t } = getI18n();
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-4">
-        <p className="atlas-kicker">Inclusive access</p>
-        <h1 className="atlas-title">Accessibilità</h1>
-        <p className="text-sm text-neutral-700">
-          ATLAS considera accessibilita e leggibilita come componenti strutturali del progetto, non come aggiunte finali.
-        </p>
-      </div>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('accessibility.eyebrow')}
+        title={t('accessibility.title')}
+        description={t('accessibility.description')}
+      />
       <div className="grid gap-4 md:grid-cols-2">
-        <article className="atlas-card text-sm text-neutral-700">
-          <h2 className="text-lg font-semibold">Baseline attive</h2>
-          <p className="mt-2">Interfacce responsive, navigazione da tastiera, gerarchie semantiche e contrasto leggibile fanno parte della baseline del progetto.</p>
+        <article className="atlas-feature-tile text-sm text-[color:var(--atlas-ink-2)]">
+          <h2 className="font-[family-name:var(--font-atlas-display)] text-3xl font-semibold text-[color:var(--atlas-ink-1)]">{t('accessibility.items.baseline.title')}</h2>
+          <p className="mt-3 leading-6">{t('accessibility.items.baseline.body')}</p>
         </article>
-        <article className="atlas-card text-sm text-neutral-700">
-          <h2 className="text-lg font-semibold">Lavoro in corso</h2>
-          <p className="mt-2">Stiamo incrementando audit WCAG su mappe, form avanzati, focus states e dashboard ad alta densita informativa.</p>
+        <article className="atlas-dark-card text-sm">
+          <h2 className="font-[family-name:var(--font-atlas-display)] text-3xl font-semibold text-white">{t('accessibility.items.inProgress.title')}</h2>
+          <p className="mt-3 leading-6 text-white/80">{t('accessibility.items.inProgress.body')}</p>
         </article>
-      </div>
-      <div className="atlas-card text-sm text-neutral-700">
-        Se incontri un problema di accessibilita, puoi segnalarlo al team editoriale e tecnico tramite la pagina contatti.
       </div>
     </section>
   );

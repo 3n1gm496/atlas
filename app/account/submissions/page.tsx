@@ -1,47 +1,39 @@
-import { prisma } from '@/lib/prisma';
+import Link from 'next/link';
 import { getCurrentUser } from '@/lib/auth/session';
-import { demoEntries, getStatusLabel } from '@/lib/demo-content';
+import { getStatusLabel } from '@/lib/content/labels';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { getI18n } from '@/lib/i18n/server';
+import { getContributorDrafts } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AccountSubmissionsPage() {
   const user = await getCurrentUser();
-  const submissions: Awaited<ReturnType<typeof prisma.entry.findMany>> = user
-    ? await prisma.entry
-        .findMany({ where: { contributorId: user.id }, orderBy: { updatedAt: 'desc' }, take: 50 })
-        .catch(() =>
-          demoEntries
-            .filter((entry) => entry.contributorId === user.id)
-            .map((entry) => ({
-              id: entry.id,
-              slug: entry.slug,
-              title: entry.title,
-              status: entry.status,
-              abstract: entry.abstract,
-              description: entry.description,
-              countryId: 'demo-country',
-              contributorId: entry.contributorId,
-              canonicalLanguage: entry.canonicalLanguage,
-              visibility: 'public',
-              featured: entry.featured,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            })) as Awaited<ReturnType<typeof prisma.entry.findMany>>
-        )
-    : [];
+  const submissions = user ? await getContributorDrafts(user.id) : [];
+  const { t, locale } = getI18n();
 
   return (
-    <section className="space-y-4">
-      <h1 className="atlas-title">Storico submission</h1>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('accountSubmissions.eyebrow')}
+        title={t('accountSubmissions.title')}
+        description={t('accountSubmissions.description')}
+        breadcrumb={t('accountSubmissions.breadcrumb')}
+      />
       <div className="grid gap-3 md:grid-cols-2">
-        {submissions.map((s) => (
-          <div key={s.id} className="atlas-card text-sm">
-            <p className="font-semibold">{s.title}</p>
-            <p className="mt-2 text-neutral-600">{getStatusLabel(s.status)}</p>
+        {submissions.map((submission, index) => (
+          <div key={submission.id} className={index === 0 ? 'atlas-dark-card text-sm' : 'atlas-result-card text-sm'}>
+            <p className={`font-[family-name:var(--font-atlas-display)] text-3xl font-semibold ${index === 0 ? 'text-white' : 'text-[color:var(--atlas-ink-1)]'}`}>{submission.title}</p>
+            <p className={`mt-2 ${index === 0 ? 'text-white/78' : 'text-[color:var(--atlas-ink-2)]'}`}>{getStatusLabel(submission.status, locale)}</p>
+            {['draft', 'changes_requested'].includes(submission.status) ? (
+              <Link href={`/submit/new?draft=${submission.id}`} className={`mt-4 inline-flex ${index === 0 ? 'atlas-link-secondary border-white/20 text-white hover:bg-white/10' : 'atlas-link-secondary'}`}>
+                {t('accountSubmissions.resume')}
+              </Link>
+            ) : null}
           </div>
         ))}
       </div>
-      {submissions.length === 0 ? <div className="atlas-empty">Nessuna submission disponibile.</div> : null}
+      {submissions.length === 0 ? <div className="atlas-empty">{t('accountSubmissions.empty')}</div> : null}
     </section>
   );
 }

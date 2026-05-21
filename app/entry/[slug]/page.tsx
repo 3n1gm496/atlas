@@ -1,147 +1,231 @@
 export const dynamic = 'force-dynamic';
-import { Prisma } from '@prisma/client';
+
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import { findDemoEntryBySlug, getStatusLabel } from '@/lib/demo-content';
-import { getCurrentUser } from '@/lib/auth/session';
-import { EntryActions } from '@/components/entry-actions';
+import Image from 'next/image';
+import { PageIntentHeader } from '@/components/page-intent-header';
+import { DatasetSheetTable } from '@/components/dataset-sheet-table';
+import { toSheetColumns, type Cartel2SheetRow } from '@/lib/dataset/cartel2-sync';
+import { getI18n } from '@/lib/i18n/server';
+import { getEntryDetailView } from '@/lib/services/public-content';
 
-type EntryDetailModel = Prisma.EntryGetPayload<{
-  include: {
-    country: true;
-    contributor: { include: { role: true } };
-    reviewer: { include: { role: true } };
-    assignments: { include: { term: { include: { group: true } } } };
-    mediaAssets: true;
-    sourceLinks: true;
-    bibliographyItems: true;
-    comments: { include: { author: true } };
-    revisions: { include: { createdBy: true } };
-  };
-}>;
-
-export default async function EntryDetail({ params }: { params: { slug: string } }) {
-  const currentUser = await getCurrentUser();
-  let entry: EntryDetailModel | null = null;
-  try {
-    entry = await prisma.entry.findUnique({
-      where: { slug: params.slug },
-      include: {
-        country: true,
-        contributor: { include: { role: true } },
-        reviewer: { include: { role: true } },
-        assignments: { include: { term: { include: { group: true } } } },
-        mediaAssets: true,
-        sourceLinks: true,
-        bibliographyItems: true,
-        comments: { include: { author: true }, orderBy: { createdAt: 'desc' } },
-        revisions: { include: { createdBy: true }, orderBy: { createdAt: 'desc' } }
-      }
-    });
-  } catch {
-    const demoEntry = findDemoEntryBySlug(params.slug);
-    if (!demoEntry) {
-      return (
-        <section className="atlas-card">
-          <h1 className="text-2xl font-semibold">Errore di connessione</h1>
-          <p className="mt-2 text-sm text-neutral-700">Impossibile caricare l&apos;entry in questo momento.</p>
-        </section>
-      );
-    }
-
-    return (
-      <section className="space-y-4">
-        <div className="atlas-card atlas-hero space-y-3">
-          <p className="atlas-kicker">Scheda entry</p>
-          <h1 className="atlas-title">{demoEntry.title}</h1>
-          <p className="text-sm text-neutral-600">
-            {demoEntry.countryName} · {demoEntry.canonicalLanguage} · {getStatusLabel(demoEntry.status)}
-          </p>
-          <p>{demoEntry.abstract}</p>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <article className="atlas-card space-y-3">
-            <h2 className="font-semibold">Descrizione</h2>
-            <p className="text-sm text-neutral-700">{demoEntry.description}</p>
-            <p className="text-sm text-neutral-600">
-              {demoEntry.placeName} · {demoEntry.timePeriodLabel} · {demoEntry.sourceContext}
-            </p>
-          </article>
-          <article className="atlas-card space-y-3">
-            <h2 className="font-semibold">Taxonomy</h2>
-            <ul className="space-y-2 text-sm">
-              {demoEntry.taxonomy.map((term) => (
-                <li key={term} className="rounded-2xl bg-neutral-50 px-4 py-3">{term}</li>
-              ))}
-            </ul>
-          </article>
-        </div>
-        <EntryActions
-          entryId={demoEntry.id}
-          initialFavorite={false}
-          canSubmit={currentUser?.id === demoEntry.contributorId && ['draft', 'changes_requested'].includes(demoEntry.status)}
-          canFavorite={Boolean(currentUser)}
-        />
-      </section>
-    );
-  }
+export default async function EntryDetail({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const entry = await getEntryDetailView(slug);
+  const { t } = getI18n();
 
   if (!entry) return notFound();
 
-  const initialFavorite = currentUser
-    ? await prisma.favorite
-        .findFirst({ where: { userId: currentUser.id, entryId: entry.id } })
-        .then(Boolean)
-        .catch(() => false)
-    : false;
+  const metadata =
+    entry.metadata && typeof entry.metadata === 'object' && !Array.isArray(entry.metadata)
+      ? (entry.metadata as Record<string, unknown>)
+      : null;
+  const workbookRow =
+    metadata && typeof metadata.sheet1 === 'object' && metadata.sheet1 && !Array.isArray(metadata.sheet1)
+      ? toSheetColumns(metadata.sheet1 as Record<string, string>)
+      : metadata && typeof metadata.workbookRow === 'object' && metadata.workbookRow && !Array.isArray(metadata.workbookRow)
+        ? toSheetColumns(metadata.workbookRow as Record<string, string>)
+        : null;
+  const sourceNetwork =
+    metadata && Array.isArray(metadata.sourceNetwork)
+      ? (metadata.sourceNetwork as string[])
+      : [];
+  const sheetMeta =
+    metadata && typeof metadata.sheet1 === 'object' && metadata.sheet1 && !Array.isArray(metadata.sheet1)
+      ? (metadata.sheet1 as Record<string, unknown>)
+      : null;
+  const mediaMeta =
+    sheetMeta && typeof sheetMeta.media === 'object' && sheetMeta.media && !Array.isArray(sheetMeta.media)
+      ? (sheetMeta.media as Record<string, unknown>)
+      : null;
+  const sheetName = typeof sheetMeta?.sheetName === 'string' ? sheetMeta.sheetName : 'sheet1';
+  const rowNumber = typeof sheetMeta?.rowNumber === 'string' || typeof sheetMeta?.rowNumber === 'number' ? sheetMeta.rowNumber : metadata?.workbookId ?? '—';
+  const rowNumberText = rowNumber === null || rowNumber === undefined ? '—' : String(rowNumber);
+  const canonicalKey = typeof sheetMeta?.canonicalKey === 'string' ? sheetMeta.canonicalKey : workbookRow?.H ?? '—';
+  const mediaMatch = typeof mediaMeta?.status === 'string' ? mediaMeta.status : entry.mediaAssets.length > 0 ? 'matched' : 'missing';
+  const groupedTaxonomy = Object.entries(entry.taxonomyByGroup).sort(([left], [right]) => left.localeCompare(right));
 
   return (
-    <section className="space-y-4">
-      <div className="atlas-card atlas-hero space-y-3">
-        <p className="atlas-kicker">Scheda entry</p>
-        <h1 className="atlas-title">{entry.title}</h1>
-        <p>{entry.abstract}</p>
-        <p className="text-sm text-neutral-700">
-          {entry.country.name} · {entry.canonicalLanguage} · {getStatusLabel(entry.status)}
-        </p>
-      </div>
-      <div className="atlas-card">
-        <h2 className="font-semibold">Taxonomy</h2>
-        <ul className="mt-3 space-y-2 text-sm">
-          {entry.assignments.map((a) => (
-            <li key={a.id} className="rounded-2xl bg-neutral-50 px-4 py-3">{a.term.labelIt}</li>
-          ))}
-        </ul>
-      </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <article className="atlas-card space-y-3">
-          <h2 className="font-semibold">Workflow</h2>
-          <p className="text-sm text-neutral-700">Contributor: {entry.contributor.displayName}</p>
-          <p className="text-sm text-neutral-700">Reviewer: {entry.reviewer?.displayName ?? 'Non assegnato'}</p>
-          <p className="text-sm text-neutral-700">Revisioni: {entry.revisions.length}</p>
-        </article>
-        <article className="atlas-card space-y-3">
-          <h2 className="font-semibold">Commenti editoriali</h2>
-          {entry.comments.length ? (
-            <div className="space-y-3">
-              {entry.comments.map((comment) => (
-                <div key={comment.id} className="rounded-2xl bg-neutral-50 px-4 py-3 text-sm">
-                  <p className="font-semibold">{comment.author.displayName}</p>
-                  <p className="mt-2 text-neutral-700">{comment.content}</p>
-                </div>
+    <section className="space-y-5">
+      <PageIntentHeader
+        eyebrow={t('entry.eyebrow')}
+        title={entry.title}
+        description={entry.abstract}
+        breadcrumb={t('entry.breadcrumb')}
+        actions={[
+          { href: '/map', label: t('entry.actions.map'), variant: 'secondary' },
+          { href: '/archive', label: t('entry.actions.archive') }
+        ]}
+      />
+
+      <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="atlas-dark-card min-w-0 space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <span className="atlas-badge-status">{entry.countryName}</span>
+            <span className="atlas-badge-status">{entry.canonicalLanguage}</span>
+            {entry.editorialNote ? <span className="atlas-chip">Editorial fallback</span> : null}
+            {entry.taxonomy.slice(0, 5).map((term) => (
+              <span key={term} className="atlas-chip atlas-chip-active">
+                {term}
+              </span>
+            ))}
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/8 p-4">
+              <p className="atlas-meta">{t('entry.meta.author')}</p>
+              <p className="mt-2 font-semibold text-white">{entry.contributorName}</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/8 p-4">
+              <p className="atlas-meta">{t('entry.meta.country')}</p>
+              <p className="mt-2 font-semibold text-white">{entry.countryName}</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/8 p-4">
+              <p className="atlas-meta">{t('entry.meta.timeframe')}</p>
+              <p className="mt-2 font-semibold text-white">{entry.timePeriodLabel ?? t('entry.meta.timeframeFallback')}</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/8 p-4">
+              <p className="atlas-meta">{t('entry.meta.place')}</p>
+              <p className="mt-2 font-semibold text-white">{entry.placeName ?? t('entry.meta.placeFallback')}</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/8 p-4">
+              <p className="atlas-meta">{t('entry.meta.source')}</p>
+              <p className="mt-2 font-semibold text-white">{entry.sourceContext ?? t('entry.meta.sourceFallback')}</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/8 p-4">
+              <p className="atlas-meta">{t('entry.meta.metadata')}</p>
+              <p className="mt-2 font-semibold text-white">{t('entry.meta.taxonomyCount', { count: entry.taxonomy.length })}</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <p className="atlas-kicker">{t('entry.descriptionKicker')}</p>
+            <p className="break-words text-sm leading-7 text-white/82">{entry.description}</p>
+            {entry.editorialNote ? <p className="text-xs uppercase tracking-[0.2em] text-white/55">{entry.editorialNote}</p> : null}
+          </div>
+        </section>
+
+        <div className="min-w-0 space-y-5">
+          <section className="atlas-card min-w-0 space-y-4">
+            <div>
+              <p className="atlas-kicker">{t('entry.taxonomyKicker')}</p>
+              <h2 className="atlas-section-title mt-2">{t('entry.taxonomyTitle')}</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {entry.taxonomy.slice(0, 8).map((term) => (
+                <span key={term} className="atlas-chip atlas-chip-active">{term}</span>
               ))}
             </div>
-          ) : (
-            <p className="text-sm text-neutral-600">Nessun commento editoriale ancora presente.</p>
-          )}
-        </article>
+            <div className="grid gap-3">
+              {groupedTaxonomy.map(([groupLabel, terms]) => (
+                <article key={groupLabel} className="rounded-[1.2rem] border border-[rgba(112,83,61,0.12)] bg-[rgba(255,255,255,0.68)] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="atlas-meta break-words">{groupLabel}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {terms.map((term) => (
+                          <span key={`${groupLabel}-${term}`} className="atlas-chip">{term}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="atlas-chip atlas-chip-active">{terms.length}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          {entry.mediaAssets.length > 0 ? (
+            <section className="atlas-card space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="atlas-kicker">{t('entry.descriptionKicker')}</p>
+                  <h2 className="atlas-section-title mt-2">Media dataset</h2>
+                </div>
+                <span className="atlas-chip">{entry.mediaAssets.length} asset</span>
+              </div>
+              <div className="grid gap-3">
+                {entry.mediaAssets.slice(0, 4).map((asset) => (
+                  <figure key={asset.id} className="overflow-hidden rounded-[1.4rem] border border-[rgba(112,83,61,0.14)] bg-[rgba(255,255,255,0.6)]">
+                    {asset.kind === 'video' ? (
+                      <video controls className="aspect-video w-full bg-black object-cover" src={asset.url} aria-label={asset.altText} />
+                    ) : (
+                      <Image
+                        className="aspect-video w-full object-cover"
+                        src={asset.url}
+                        alt={asset.altText}
+                        width={1200}
+                        height={800}
+                        unoptimized
+                      />
+                    )}
+                    <figcaption className="px-4 py-3 text-sm text-[color:var(--atlas-ink-2)]">{asset.altText}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="atlas-card min-w-0 space-y-4">
+            <div>
+              <p className="atlas-kicker">{t('entry.meta.metadata')}</p>
+              <h2 className="atlas-section-title mt-2">Campi del foglio</h2>
+            </div>
+            {workbookRow ? <DatasetSheetTable row={workbookRow as Cartel2SheetRow} caption="Cartel2 sheet row" /> : <div className="atlas-empty">Foglio non disponibile.</div>}
+          </section>
+
+          <section className="atlas-card min-w-0 space-y-4">
+            <div>
+              <p className="atlas-kicker">{t('entry.meta.source')}</p>
+              <h2 className="atlas-section-title mt-2">Provenienza</h2>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-[1.2rem] border border-[rgba(112,83,61,0.12)] bg-[rgba(255,255,255,0.68)] p-4">
+                <p className="atlas-meta">Sheet</p>
+                <p className="mt-2 text-sm font-medium text-[color:var(--atlas-ink-1)]">{sheetName}</p>
+              </div>
+              <div className="rounded-[1.2rem] border border-[rgba(112,83,61,0.12)] bg-[rgba(255,255,255,0.68)] p-4">
+                <p className="atlas-meta">Row</p>
+                <p className="mt-2 text-sm font-medium text-[color:var(--atlas-ink-1)]">{rowNumberText}</p>
+              </div>
+              <div className="rounded-[1.2rem] border border-[rgba(112,83,61,0.12)] bg-[rgba(255,255,255,0.68)] p-4">
+                <p className="atlas-meta">Canonical key</p>
+                <p className="mt-2 text-sm font-medium text-[color:var(--atlas-ink-1)]">{canonicalKey}</p>
+              </div>
+              <div className="rounded-[1.2rem] border border-[rgba(112,83,61,0.12)] bg-[rgba(255,255,255,0.68)] p-4">
+                <p className="atlas-meta">Media match</p>
+                <p className="mt-2 text-sm font-medium text-[color:var(--atlas-ink-1)]">
+                  {mediaMatch}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2 text-sm leading-6 text-[color:var(--atlas-ink-2)]">
+              <p>
+                Media assets: <strong>{entry.mediaAssets.length}</strong>
+                {mediaMeta?.matchedBy ? ` · matched by ${String(mediaMeta.matchedBy)}` : ''}
+              </p>
+              <p>
+                Source network: <strong>{sourceNetwork.length ? sourceNetwork.join(' · ') : workbookRow?.S ?? '—'}</strong>
+              </p>
+            </div>
+            <div className="space-y-2">
+              {entry.sourceLinks.length > 0 ? (
+                <ul className="space-y-2">
+                  {entry.sourceLinks.map((link) => (
+                    <li key={link.id}>
+                      <a href={link.url} className="atlas-link-secondary break-all">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {entry.bibliographyItems.length > 0 ? (
+                <div className="rounded-[1.2rem] border border-[rgba(112,83,61,0.12)] bg-[rgba(255,255,255,0.68)] p-4 text-sm leading-6 text-[color:var(--atlas-ink-2)]">
+                  {entry.bibliographyItems[0].citation}
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </div>
       </div>
-      <EntryActions
-        entryId={entry.id}
-        initialFavorite={initialFavorite}
-        canSubmit={Boolean(currentUser && currentUser.id === entry.contributorId && ['draft', 'changes_requested'].includes(entry.status))}
-        canFavorite={Boolean(currentUser)}
-      />
     </section>
   );
 }

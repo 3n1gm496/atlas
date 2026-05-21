@@ -17,21 +17,43 @@ cp .env.example .env
 # Impostare NEXTAUTH_SECRET con una stringa casuale sicura
 npm install
 npm run prisma:generate
+npm run prisma:doctor
 npx prisma migrate dev --name init
 npm run prisma:seed
 npm run dev
 ```
+
+## Bootstrap locale rapido
+Per avviarlo davvero sulla tua macchina con PostgreSQL in Docker e il dataset reale:
+
+```bash
+npm run bootstrap:local
+PORT=3210 env $(grep -v '^#' .env.local | xargs) npm run dev
+```
+
+Questo bootstrap:
+- avvia un PostgreSQL locale dedicato su `55432`
+- scrive `.env.local`
+- esegue `prisma generate`
+- applica le migrazioni
+- carica i dati del workbook sincronizzato
 
 ## Docker Compose automatico
 `docker compose up --build` ora:
 - avvia PostgreSQL
 - aspetta che il DB sia pronto
 - applica automaticamente le migrazioni Prisma
-- esegue il seed automatico solo se il database e vuoto
+- non esegue seed automatico nel runtime di produzione-like
 
-Quindi al primo avvio troverai gia utenti demo, tassonomie, entry, collezioni e dati per le dashboard.
+Per caricare il dataset sincronizzato usa `npm run bootstrap:local` oppure un seed esplicito prima di avviare il runtime.
 
-## Account demo seed
+Runtime locale approvato:
+- app `http://127.0.0.1:3210`
+- db `127.0.0.1:55432`
+
+Quindi al primo avvio troverai gia utenti, tassonomie, entry, collezioni e dati per le dashboard.
+
+## Account seed
 | Email | Ruolo | Password |
 |-------|-------|----------|
 | `admin@atlas.local` | super_admin | `admin1234` |
@@ -47,6 +69,7 @@ Quindi al primo avvio troverai gia utenti demo, tassonomie, entry, collezioni e 
 
 ## API pronte per produzione (base)
 - `GET /api/health`
+- `GET /api/readiness`
 - `GET/POST /api/entries`
 - `GET/PATCH /api/entries/:id`
 - `POST /api/submit`
@@ -61,10 +84,28 @@ npm run test
 npm run build
 ```
 
+## Prisma sync
+```bash
+npm run prisma:doctor
+```
+Se fallisce, il client Prisma generato non e allineato con `prisma/schema.prisma` e va rigenerato prima di toccare workflow o schema.
+
 ## Docker
 ```bash
 docker compose up --build
 ```
 
-## Stato produzione
-Vedi checklist dettagliata: `docs/production-readiness.md`.
+## Note go-live
+- In produzione impostare sempre `APP_MODE=production` oppure `APP_MODE=staging`
+- In produzione `NEXTAUTH_SECRET` deve essere fornito via secret manager o variabile ambiente esterna
+- Usare `/api/health` come liveness probe
+- Usare `/api/readiness` come readiness probe
+- Eseguire `npx prisma migrate deploy` prima dello start applicativo
+
+## Demo readiness
+Il programma canonico per decidere se ATLAS e pronto per una demo ufficiale e `docs/demo-readiness-program.md`.
+
+I riferimenti operativi restano disponibili qui:
+- checklist esecutiva: `docs/production-checklist.md`
+- runbook operativo: `docs/go-live-runbook.md`
+- readiness di produzione: `docs/production-readiness.md`

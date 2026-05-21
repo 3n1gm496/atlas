@@ -1,0 +1,38 @@
+{
+  "rowsTotal": 18,
+  "rowsWithMedia": 5,
+  "rowsWithoutMedia": 13,
+  "rowsWithCoreMetadata": 6,
+  "rowsWithoutCoreMetadata": 12,
+  "coreMetadataCoverage": 33,
+  "coreMetadataColumns": [
+    "A",
+    "B",
+    "E",
+    "H"
+  ],
+  "coreMetadataMissingRowNumbers": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22
+  ],
+  "rowsRenderableWithEditorialFallback": 18,
+  "rowsWithoutEditorialFallback": 0,
+  "editorialFallbackCoverage": 100,
+  "editorialFallbackMissingRowNumbers": [],
+  "rowsWithCanonicalCollision": 0,
+  "canonicalCollisionGroups": [],
+  "assetsTotal": 9,
+  "matchedAssets": 9,
+  "orphanAssets": 0,
+  "orphanAssetNames": []
+}

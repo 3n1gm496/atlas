@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: atlas
       POSTGRES_PASSWORD: atlas
     ports:
-      - '5432:5432'
+      - '${ATLAS_DB_HOST_PORT:-55432}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,14 +18,15 @@ services:
     build: .
     command: npm run start
     ports:
-      - '3000:3000'
+      - '${ATLAS_HOST_PORT:-3210}:3000'
     environment:
       DATABASE_URL: postgresql://atlas:atlas@db:5432/atlas
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:${ATLAS_HOST_PORT:-3210}
+      APP_MODE: staging
       # WARNING: change this to a long random secret (min 32 chars) in production
       NEXTAUTH_SECRET: dev-secret-change-in-production-min-32x
-      NEXTAUTH_URL: http://localhost:3000
-      ATLAS_AUTO_SEED: 'true'
+      NEXTAUTH_URL: http://127.0.0.1:${ATLAS_HOST_PORT:-3210}
+      ATLAS_AUTO_SEED: 'false'
     depends_on:
       db:
         condition: service_healthy

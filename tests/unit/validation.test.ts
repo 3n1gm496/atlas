@@ -22,12 +22,14 @@ describe('entry validation', () => {
         tones: ['Critique'],
         scriptoIconicSubcategories: ['Memes'],
         microforms: ['Hashtags'],
+        chronology: ['2020 - 2025'],
         trendSummary: 'Sintesi di test'
       }
     });
 
     expect(parsed.slug).toBe('entry-001');
     expect(parsed.trendMetadata?.tones[0]).toBe('Critique');
+    expect(parsed.trendMetadata?.chronology?.[0]).toBe('2020 - 2025');
   });
 
   it('rejects invalid create payload', () => {
