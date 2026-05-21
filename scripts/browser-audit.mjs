@@ -54,7 +54,6 @@ const contributorRoutes = [
   '/submit/new'
 ];
 
-const editorRoutes = [];
 const adminRoutes = [
   '/review',
   '/admin',
@@ -62,6 +61,7 @@ const adminRoutes = [
   '/admin/collections',
   '/admin/taxonomies',
   '/admin/users',
+  '/admin/media',
   '/admin/import-export',
   '/admin/analytics',
   '/admin/audit',
@@ -238,6 +238,36 @@ async function runGroup(browser, viewport, name, routes, auth) {
   return { name, routes: results };
 }
 
+function collectFailures(summary) {
+  const failures = [];
+
+  for (const viewport of summary) {
+    for (const group of viewport.groups) {
+      for (const route of group.routes) {
+        const prefix = `${viewport.viewport} ${group.name} ${route.route}`;
+
+        if (route.status !== 200) {
+          failures.push(`${prefix}: expected HTTP 200, got ${route.status ?? 'null'}`);
+        }
+
+        for (const error of route.pageErrors) {
+          failures.push(`${prefix}: pageerror: ${error}`);
+        }
+
+        for (const issue of route.consoleIssues) {
+          failures.push(`${prefix}: console error: ${issue}`);
+        }
+
+        if (route.hasHorizontalOverflow) {
+          failures.push(`${prefix}: horizontal overflow detected`);
+        }
+      }
+    }
+  }
+
+  return failures;
+}
+
 async function main() {
   await fs.rm(outputRoot, { recursive: true, force: true });
   await ensureDir(outputRoot);
@@ -256,14 +286,6 @@ async function main() {
         password: 'contributor1234'
       })
     );
-    if (editorRoutes.length > 0) {
-      groups.push(
-        await runGroup(browser, viewport, 'editor', filterRoutes(editorRoutes), {
-          email: 'editor@atlas.local',
-          password: 'editor1234'
-        })
-      );
-    }
     groups.push(
       await runGroup(browser, viewport, 'admin', filterRoutes(adminRoutes), {
         email: 'admin@atlas.local',
@@ -275,6 +297,10 @@ async function main() {
 
   await browser.close();
   await fs.writeFile(path.join(outputRoot, 'summary.json'), JSON.stringify(summary, null, 2));
+  const failures = collectFailures(summary);
+  if (failures.length > 0) {
+    throw new Error(`Browser audit failed:\n${failures.map((failure) => `- ${failure}`).join('\n')}`);
+  }
   console.log(`Browser audit written to ${outputRoot}`);
 }
 

@@ -1,15 +1,15 @@
-# Demo Readiness Program
+# Readiness Program
 
-This is the canonical checklist for deciding whether ATLAS is ready for an official demo.
+This is the canonical checklist for deciding whether ATLAS is ready for an official sign-off.
 
 ## Goal
 
 Reach a single operator decision:
 
-- `GO` only when the project is stable enough to demo live without caveats.
+- `GO` only when the project is stable enough to present live without caveats.
 - `NO-GO` if any gate fails, with a concrete blocker list.
 
-The demo target is a **production-like runtime**, not `next dev`.
+The target is a **production-like runtime**, not `next dev`.
 
 ## Baseline
 
@@ -53,7 +53,7 @@ Exit criteria:
 - health returns `200`
 - readiness returns `200`
 - app mode and env align with the chosen target
-- no automatic seed is happening in the demo runtime
+- no automatic seed is happening in the runtime
 - readiness reports dataset health with `rowsRenderableWithEditorialFallback == rowsTotal`
 - readiness reports `rowsWithCanonicalCollision == 0` and `orphanAssets == 0`
 - readiness fails if `ATLAS_AUTO_SEED` is enabled
@@ -78,9 +78,9 @@ Exit criteria:
 - review/admin routes are role-gated correctly
 - browser audit has no real `pageError` or `console error`
 - no blocking overflow on core screens
-- no critical route depends on hidden fake/demo content
+- no critical route depends on hidden synthetic content
 
-## Gate 4: Demo smoke
+## Gate 4: Sign-Off Smoke
 
 Before sign-off, exercise the exact user path a presenter will click:
 
@@ -92,6 +92,7 @@ Before sign-off, exercise the exact user path a presenter will click:
 - register
 - contributor submit
 - review
+- admin media
 - admin analytics
 - admin audit
 - admin settings
@@ -106,9 +107,9 @@ Exit criteria:
 
 ## Gate 5: Operational readiness
 
-Required before a live demo:
+Required before a live sign-off:
 
-- `APP_MODE=production` or a clearly documented demo/staging equivalent
+- `APP_MODE=production` or a clearly documented staging equivalent
 - `ATLAS_AUTO_SEED=false`
 - `NEXTAUTH_SECRET` is non-default and externally managed
 - `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` match the actual target
@@ -125,8 +126,8 @@ If any gate fails:
 3. Fix the blocker.
 4. Re-run the gates from the top of the failed layer.
 
-Do not promote to demo by relying on manual confidence alone.
+Do not mark the system ready by relying on manual confidence alone.
 
 ## Decision
 
-The project is demo-ready only when all gates are green on the chosen target and the rollback path is ready.
+The project is ready only when all gates are green on the chosen target and the rollback path is ready.
