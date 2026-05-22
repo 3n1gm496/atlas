@@ -58,6 +58,10 @@ function isBlank(value: string) {
   return value.trim().length === 0;
 }
 
+function fileKey(file: File) {
+  return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
 function resolveStepFromForm(form: FormState) {
   if (isBlank(form.slug) || isBlank(form.title) || isBlank(form.abstract) || isBlank(form.description)) return 0;
   if (isBlank(form.countryId) || isBlank(form.timePeriodLabel)) return 1;
@@ -257,6 +261,10 @@ export function SubmitTrendForm({ countries, groups, initialDraft }: Props) {
         ? current.taxonomyTermIds.filter((value) => value !== termId)
         : [...current.taxonomyTermIds, termId]
     }));
+  }
+
+  function removeMediaFile(targetKey: string) {
+    setMediaFiles((current) => current.filter((file) => fileKey(file) !== targetKey));
   }
 
   const payload = useMemo(() => {
@@ -534,9 +542,18 @@ export function SubmitTrendForm({ countries, groups, initialDraft }: Props) {
                 {mediaFiles.length ? (
                   <ul className="space-y-2">
                     {mediaFiles.map((file) => (
-                      <li key={`${file.name}-${file.size}`} className="flex items-center justify-between gap-3 text-sm text-[color:var(--atlas-ink-2)]">
-                        <span>{file.name}</span>
-                        <span className="atlas-meta">{Math.round(file.size / 1024)} KB</span>
+                      <li key={fileKey(file)} className="flex items-center justify-between gap-3 text-sm text-[color:var(--atlas-ink-2)]">
+                        <div className="min-w-0">
+                          <p className="truncate text-[color:var(--atlas-ink-1)]">{file.name}</p>
+                          <p className="atlas-meta">{Math.round(file.size / 1024)} KB</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeMediaFile(fileKey(file))}
+                          className="atlas-link-secondary px-3 py-2 text-xs"
+                        >
+                          {t('common.remove')}
+                        </button>
                       </li>
                     ))}
                   </ul>

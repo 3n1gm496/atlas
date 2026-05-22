@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { getReviewActionsForStatus, type ReviewAction } from '@/lib/workflows/entry-workflow';
 import { useI18n } from '@/components/i18n-provider';
+import { getStatusLabel } from '@/lib/content/labels';
 
 type ReviewItem = {
   id: string;
@@ -35,7 +36,7 @@ const actions = [
 ] as const satisfies ReadonlyArray<{ value: ReviewAction; labelKey: string; danger?: boolean }>;
 
 export function ReviewBoard({ initialItems, reviewers }: { initialItems: ReviewItem[]; reviewers: Reviewer[] }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [items, setItems] = useState(initialItems);
   const [feedback, setFeedback] = useState<Record<string, string>>({});
   const [reviewersByEntry, setReviewersByEntry] = useState<Record<string, string>>(
@@ -148,6 +149,8 @@ export function ReviewBoard({ initialItems, reviewers }: { initialItems: ReviewI
       return matchesQuery;
     });
   }, [items, query]);
+  const assignedVisibleCount = visibleItems.filter((item) => item.reviewerId).length;
+  const unassignedVisibleCount = visibleItems.length - assignedVisibleCount;
 
   const selectedItem = visibleItems.find((item) => item.id === selectedId) ?? visibleItems[0] ?? null;
 
@@ -180,6 +183,11 @@ export function ReviewBoard({ initialItems, reviewers }: { initialItems: ReviewI
             </div>
           </div>
         </div>
+        <div className="atlas-action-strip">
+          <span className="atlas-chip atlas-chip-active">{t('review.visibleLabel')}: {visibleItems.length}</span>
+          <span className="atlas-chip">{t('review.reviewerLabel')}: {assignedVisibleCount}</span>
+          <span className="atlas-chip">{t('review.unassigned')}: {unassignedVisibleCount}</span>
+        </div>
 
         <div className="atlas-worklist">
           {visibleItems.length === 0 ? (
@@ -196,7 +204,12 @@ export function ReviewBoard({ initialItems, reviewers }: { initialItems: ReviewI
                 >
                   <div className="grid gap-3 xl:grid-cols-[1fr_auto]">
                     <div className="space-y-2">
-                      <p className="font-[family-name:var(--font-atlas-display)] text-2xl font-semibold leading-tight text-white">{item.title}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-[family-name:var(--font-atlas-display)] text-2xl font-semibold leading-tight text-white">{item.title}</p>
+                        <span className="atlas-chip atlas-chip-active border-white/10 bg-white/12 text-white">
+                          {getStatusLabel(item.status, locale)}
+                        </span>
+                      </div>
                       <p className="text-sm text-white/72">
                         {t('review.byContributor', { name: item.contributorName })}
                         {item.reviewerName ? ` · ${t('review.assignedTo', { name: item.reviewerName })}` : ` · ${t('review.unassigned')}`}
@@ -220,7 +233,7 @@ export function ReviewBoard({ initialItems, reviewers }: { initialItems: ReviewI
         </div>
       </section>
 
-      <aside className="atlas-section-shell space-y-4">
+      <aside className="atlas-section-shell space-y-4 lg:sticky lg:top-24">
         {selectedItem ? (
           <>
             <div className="space-y-3">
@@ -231,6 +244,7 @@ export function ReviewBoard({ initialItems, reviewers }: { initialItems: ReviewI
                 {selectedItem.reviewerName ?? t('review.unassigned')}
               </p>
               <div className="atlas-action-strip border-t border-[rgba(112,83,61,0.14)] pt-3">
+                <span className="atlas-chip atlas-chip-active">{getStatusLabel(selectedItem.status, locale)}</span>
                 <Link href={`/entry/${selectedItem.slug}`} className="atlas-link-secondary">
                   {t('review.openCard')}
                 </Link>
