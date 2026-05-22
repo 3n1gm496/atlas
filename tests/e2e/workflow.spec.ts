@@ -55,6 +55,9 @@ test('contributor to review to publish workflow is verified end-to-end', async (
   await adminPage.goto('/admin');
   await expect(adminPage.getByRole('heading', { name: /edit cards, edit taxonomy, manage the map|modifica schede, tassonomie e mappa/i })).toBeVisible();
 
+  await adminPage.goto('/admin/media');
+  await expect(adminPage.getByRole('heading', { name: /media library|libreria media/i })).toBeVisible();
+
   await adminPage.goto('/admin/analytics');
   await expect(adminPage.getByRole('heading', { name: /useful numbers, not noise|numeri utili, non rumore/i })).toBeVisible();
 

@@ -3,13 +3,50 @@ on: [push, pull_request]
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: atlas
+          POSTGRES_USER: atlas
+          POSTGRES_PASSWORD: atlas
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U atlas -d atlas"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://atlas:atlas@127.0.0.1:55432/atlas
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3210
+      NEXTAUTH_URL: http://127.0.0.1:3210
+      NEXTAUTH_SECRET: ci-production-secret-0123456789-production
+      APP_MODE: production
+      ATLAS_AUTO_SEED: 'false'
+      PORT: '3210'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run prisma:generate
+      - run: npm run prisma:doctor
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build
+      - run: npm run prisma:migrate
+      - run: npm run prisma:seed
+      - run: nohup npm run start -- --hostname 127.0.0.1 --port 3210 > /tmp/atlas-next.log 2>&1 &
+      - run: |
+          for _ in $(seq 1 60); do
+            curl -sSf http://127.0.0.1:3210/api/health >/dev/null && curl -sSf http://127.0.0.1:3210/api/readiness >/dev/null && exit 0
+            sleep 2
+          done
+          echo "App did not become ready" >&2
+          exit 1
+      - run: PLAYWRIGHT_BASE_URL=http://127.0.0.1:3210 npm run test:e2e
+      - run: REVIEW_BASE_URL=http://127.0.0.1:3210 npm run test:browser-audit

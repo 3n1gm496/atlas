@@ -1,18 +1,11 @@
-import { redirect } from 'next/navigation';
 import { PageIntentHeader } from '@/components/page-intent-header';
 import { ReviewBoard } from '@/components/review-board';
-import { getCurrentUser } from '@/lib/auth/session';
 import { getI18n } from '@/lib/i18n/server';
 import { getEditorialAssignees, getReviewQueue } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ReviewPage() {
-  const user = await getCurrentUser();
-  if (!user || !['research_admin', 'super_admin'].includes(user.role.name)) {
-    redirect('/account');
-  }
-
   const [queue, reviewers] = await Promise.all([getReviewQueue(), getEditorialAssignees()]);
   const { t } = getI18n();
 

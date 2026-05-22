@@ -19,6 +19,7 @@ Questa base di test serve a verificare ANTICORES come prodotto reale, non una ve
   - `console error`
   - overflow orizzontale
   - overflow a zoom `125%` e `150%`
+- GitHub Actions deve eseguire anche `test:e2e` e `test:browser-audit` sul runtime built, non solo lint/typecheck/test/build.
 
 ## Baseline locale approvata
 - app locale: `http://127.0.0.1:3210`

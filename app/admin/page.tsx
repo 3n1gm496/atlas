@@ -1,18 +1,11 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { PageIntentHeader } from '@/components/page-intent-header';
-import { getCurrentUser } from '@/lib/auth/session';
 import { getI18n } from '@/lib/i18n/server';
 import { getAdminOverview } from '@/lib/services/workspaces';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
-  const user = await getCurrentUser();
-  if (!user || !['research_admin', 'super_admin'].includes(user.role.name)) {
-    redirect('/account');
-  }
-
   const overview = await getAdminOverview();
   const { t } = getI18n();
 
