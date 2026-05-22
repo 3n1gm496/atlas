@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 
-const baseURL = process.env.REVIEW_BASE_URL ?? process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3210';
 const outputRoot = path.resolve(process.cwd(), '.tmp/browser-audit');
 const routeFilter = new Set(
   (process.env.AUDIT_ROUTES ?? '')
@@ -78,66 +77,37 @@ async function ensureDir(dir) {
 
 async function launchBrowserWithRetry() {
   let lastError;
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
     try {
       return await chromium.launch({
         headless: true,
         chromiumSandbox: false,
-        args: ['--no-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--no-zygote', '--disable-dev-shm-usage']
       });
     } catch (error) {
       lastError = error;
-      if (attempt < 3) {
-        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+      if (attempt < 6) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
       }
     }
   }
   throw lastError;
 }
 
-async function login(page, email, password) {
+async function login(page, baseURL, email, password) {
   await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(300);
-  const csrfToken = await page.evaluate(async () => {
-    const response = await fetch('/api/auth/csrf');
-    const payload = await response.json();
-    return payload.csrfToken;
-  });
-
-  const result = await page.evaluate(
-    async ({ targetEmail, targetPassword, token }) => {
-      const body = new URLSearchParams({
-        csrfToken: token,
-        callbackUrl: '/account',
-        json: 'true',
-        email: targetEmail,
-        password: targetPassword
-      });
-      const response = await fetch('/api/auth/callback/credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body
-      });
-      return {
-        status: response.status,
-        text: await response.text()
-      };
-    },
-    { targetEmail: email, targetPassword: password, token: csrfToken }
-  );
-
-  if (result.status >= 400) {
-    throw new Error(`Browser audit login failed with status ${result.status}: ${result.text}`);
-  }
-
-  await page.goto(`${baseURL}/account`, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.getByLabel(/email/i).fill(email);
+  await page.getByLabel(/password/i).fill(password);
+  await page.getByRole('button', { name: /sign in|accedi|se connecter/i }).click();
+  await page.waitForLoadState('networkidle', { timeout: 30000 });
 }
 
-async function buildContext(browser, viewport, auth) {
+async function buildContext(browser, baseURL, viewport, auth) {
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();
   if (auth) {
-    await login(page, auth.email, auth.password);
+    await login(page, baseURL, auth.email, auth.password);
     await page.close();
   }
   return { context };
@@ -183,7 +153,7 @@ async function captureHotspots(page, viewportDir, routeName, viewport) {
   }
 }
 
-async function auditRoute(page, route, viewportDir, viewport) {
+async function auditRoute(page, baseURL, route, viewportDir, viewport) {
   const consoleIssues = [];
   const pageErrors = [];
   page.removeAllListeners('console');
@@ -224,14 +194,13 @@ async function auditRoute(page, route, viewportDir, viewport) {
   };
 }
 
-async function runGroup(browser, viewport, name, routes, auth) {
-  const viewportDir = path.join(outputRoot, viewport.name);
+async function runGroup(browser, baseURL, viewport, name, routes, auth, viewportDir) {
   await ensureDir(viewportDir);
-  const { context } = await buildContext(browser, viewport, auth);
+  const { context } = await buildContext(browser, baseURL, viewport, auth);
   const results = [];
   for (const route of routes) {
     const page = await context.newPage();
-    results.push(await auditRoute(page, route, viewportDir, viewport));
+    results.push(await auditRoute(page, baseURL, route, viewportDir, viewport));
     await page.close();
   }
   await context.close();
@@ -268,39 +237,52 @@ function collectFailures(summary) {
   return failures;
 }
 
-async function main() {
-  await fs.rm(outputRoot, { recursive: true, force: true });
-  await ensureDir(outputRoot);
-
-  const browser = await launchBrowserWithRetry();
+async function runAudit(browser, baseURL) {
   const summary = [];
+  const targetDir = outputRoot;
+  await fs.rm(targetDir, { recursive: true, force: true });
+  await ensureDir(targetDir);
 
   const filterRoutes = (routes) => (routeFilter.size > 0 ? routes.filter((route) => routeFilter.has(route)) : routes);
 
   for (const viewport of viewports) {
+    const viewportDir = path.join(targetDir, viewport.name);
     const groups = [];
-    groups.push(await runGroup(browser, viewport, 'public', filterRoutes(publicRoutes), null));
+    groups.push(await runGroup(browser, baseURL, viewport, 'public', filterRoutes(publicRoutes), null, viewportDir));
     groups.push(
-      await runGroup(browser, viewport, 'contributor', filterRoutes(contributorRoutes), {
+      await runGroup(browser, baseURL, viewport, 'contributor', filterRoutes(contributorRoutes), {
         email: 'contributor@atlas.local',
         password: 'contributor1234'
-      })
+      }, viewportDir)
     );
     groups.push(
-      await runGroup(browser, viewport, 'admin', filterRoutes(adminRoutes), {
+      await runGroup(browser, baseURL, viewport, 'admin', filterRoutes(adminRoutes), {
         email: 'admin@atlas.local',
         password: 'admin1234'
-      })
+      }, viewportDir)
     );
-    summary.push({ viewport: viewport.name, width: viewport.width, height: viewport.height, groups });
+    summary.push({ baseURL, target: baseURL, viewport: viewport.name, width: viewport.width, height: viewport.height, groups });
   }
 
-  await browser.close();
-  await fs.writeFile(path.join(outputRoot, 'summary.json'), JSON.stringify(summary, null, 2));
   const failures = collectFailures(summary);
+  await fs.writeFile(path.join(targetDir, 'summary.json'), JSON.stringify(summary, null, 2));
   if (failures.length > 0) {
-    throw new Error(`Browser audit failed:\n${failures.map((failure) => `- ${failure}`).join('\n')}`);
+    throw new Error(`Browser audit failed for ${baseURL}:\n${failures.map((failure) => `- ${failure}`).join('\n')}`);
   }
+}
+
+async function main() {
+  await fs.rm(outputRoot, { recursive: true, force: true });
+  await ensureDir(outputRoot);
+
+  const baseURL = process.env.REVIEW_BASE_URL ?? process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3210';
+  const browser = await launchBrowserWithRetry();
+  try {
+    await runAudit(browser, baseURL);
+  } finally {
+    await browser.close();
+  }
+
   console.log(`Browser audit written to ${outputRoot}`);
 }
 
