@@ -1,12 +1,27 @@
 import Link from 'next/link';
 import { getPublicHomepageData } from '@/lib/services/public-content';
+import { getMediaMatchLabel } from '@/lib/content/labels';
 import { getI18n } from '@/lib/i18n/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const { t } = getI18n();
+  const { t, locale } = getI18n();
   const { stats, featuredEntries } = await getPublicHomepageData();
+
+  function mediaTone(status?: string | null) {
+    switch (status) {
+      case 'matched':
+        return 'atlas-chip-success';
+      case 'partial':
+        return 'atlas-chip-warning';
+      case 'missing':
+      case 'orphan':
+        return 'atlas-chip-danger';
+      default:
+        return '';
+    }
+  }
 
   return (
     <section className="space-y-10 overflow-x-clip">
@@ -63,7 +78,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+      <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr] xl:items-start">
         <div className="atlas-dark-card space-y-5">
           <div>
             <p className="atlas-kicker">{t('home.whyKicker')}</p>
@@ -85,23 +100,24 @@ export default async function HomePage() {
           <div className="grid gap-4 md:grid-cols-2">
             {featuredEntries.slice(0, 4).map((entry, index) => (
               <Link key={entry.id} href={`/entry/${entry.slug}`} className={`${index === 0 ? 'atlas-feature-tile md:col-span-2' : 'atlas-result-card'}`}>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="atlas-meta">
-                      {entry.countryName} · {entry.placeName ?? t('home.defaultPlace')}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {entry.editorialNote ? <span className="atlas-chip">Editorial fallback</span> : null}
-                      {entry.featured || index === 0 ? <span className="atlas-chip atlas-chip-active">{t('home.featured')}</span> : null}
-                      {entry.sheetKey ? <span className="atlas-chip">{entry.sheetKey}</span> : null}
-                      {entry.sheetRowNumber ? <span className="atlas-chip">riga {entry.sheetRowNumber}</span> : null}
-                      <span className="atlas-chip">{entry.mediaAssetCount} media</span>
-                    </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="atlas-meta">
+                    {entry.countryName} · {entry.placeName ?? t('home.defaultPlace')}
+                  </p>
+                  {entry.editorialNote ? <span className="atlas-chip atlas-chip-warning">{t('common.editorialFallback')}</span> : null}
+                  {entry.featured || index === 0 ? <span className="atlas-chip atlas-chip-active">{t('home.featured')}</span> : null}
+                  {entry.mediaMatchStatus ? <span className={`atlas-chip ${mediaTone(entry.mediaMatchStatus)}`}>{getMediaMatchLabel(entry.mediaMatchStatus, locale)}</span> : null}
                 </div>
                 <h3 className="mt-3 font-[family-name:var(--font-atlas-display)] text-3xl font-semibold leading-tight text-[color:var(--atlas-ink-1)]">
                   {entry.title}
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--atlas-ink-2)]">{entry.abstract}</p>
-                <p className="mt-5 atlas-meta">{entry.timePeriodLabel ?? t('home.defaultPeriod')}</p>
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  <span className="atlas-chip">{entry.sheetKey ?? t('common.sheet')}</span>
+                  {entry.sheetRowNumber ? <span className="atlas-chip">{t('common.row')} {entry.sheetRowNumber}</span> : null}
+                  <span className="atlas-chip">{t('common.mediaAssets', { count: entry.mediaAssetCount })}</span>
+                  <p className="atlas-meta">{entry.timePeriodLabel ?? t('home.defaultPeriod')}</p>
+                </div>
               </Link>
             ))}
           </div>

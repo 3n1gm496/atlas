@@ -54,7 +54,31 @@ export const messages: Dictionary = {
       noFilters: 'No filters',
       untitled: 'Untitled',
       countryUndefined: 'Place being defined',
-      periodUndefined: 'Timeframe being defined'
+      periodUndefined: 'Timeframe being defined',
+      provenance: 'Provenance',
+      editorialFallback: 'Sheet note',
+      sheet: 'Sheet',
+      row: 'Row',
+      canonicalKey: 'Canonical key',
+      mediaMatch: 'Media match',
+      mediaAssets: '{count} media',
+      more: 'More',
+      sourceNetwork: 'Source network',
+      sourceLinks: 'Source links',
+      bibliography: 'Bibliography',
+      media: 'Media',
+      workbookRowCaption: 'Workbook row',
+      matchedViaCanonical: 'Matched via canonical key',
+      matchedViaLegacy: 'Matched via legacy key',
+      matchedViaAlias: 'Matched via alias',
+      matchedBy: 'Matched by {value}',
+      matched: 'Matched',
+      partial: 'Partial',
+      missing: 'Missing',
+      orphan: 'Orphan',
+      active: 'Active',
+      inactive: 'Inactive',
+      unavailable: 'Unavailable'
     },
     nav: {
       explore: 'Explore',
@@ -558,6 +582,21 @@ export const messages: Dictionary = {
         records: 'Exportable records',
         terms: 'Exportable terms'
       },
+      syncCoverage: {
+        title: 'Sync coverage',
+        rowsWithoutMedia: 'Rows without media',
+        orphanAssets: 'Orphan assets',
+        canonicalCollisions: 'Canonical collisions',
+        matchedAssets: 'Matched assets',
+        coreMetadata: 'Core metadata completeness',
+        completeRows: 'Rows complete on A/B/E/H',
+        incompleteRows: 'Incomplete rows',
+        editorialFallback: 'Workbook completeness',
+        renderableRows: 'Rows complete on workbook fields',
+        missingFallback: 'Incomplete workbook rows',
+        coverage: 'Coverage',
+        allFallback: 'All workbook rows are complete enough for public rendering.'
+      },
       when: {
         kicker: 'When to use them',
         title: 'Not every export is needed every day',
@@ -848,7 +887,7 @@ export const messages: Dictionary = {
         response: 'Response time',
         responseBody: 'Usually within 3–5 working days.',
         quick: 'Quick send',
-        quickBody: 'The form opens your default email client with the core fields already filled in.'
+        quickBody: 'The button opens your default email client with a pre-addressed message.'
       },
       form: {
         name: 'Name',
@@ -1127,7 +1166,31 @@ export const messages: Dictionary = {
       noFilters: 'Nessun filtro',
       untitled: 'Senza titolo',
       countryUndefined: 'Luogo in definizione',
-      periodUndefined: 'Periodo in definizione'
+      periodUndefined: 'Periodo in definizione',
+      provenance: 'Provenienza',
+      editorialFallback: 'Nota foglio',
+      sheet: 'Foglio',
+      row: 'Riga',
+      canonicalKey: 'Chiave canonica',
+      mediaMatch: 'Corrispondenza media',
+      mediaAssets: '{count} media',
+      more: 'Altro',
+      sourceNetwork: 'Rete di origine',
+      sourceLinks: 'Link sorgente',
+      bibliography: 'Bibliografia',
+      media: 'Media',
+      workbookRowCaption: 'Riga del workbook',
+      matchedViaCanonical: 'Corrisposto tramite chiave canonica',
+      matchedViaLegacy: 'Corrisposto tramite chiave legacy',
+      matchedViaAlias: 'Corrisposto tramite alias',
+      matchedBy: 'Corrisposto da {value}',
+      matched: 'Corrispondente',
+      partial: 'Parziale',
+      missing: 'Mancante',
+      orphan: 'Orfano',
+      active: 'Attivo',
+      inactive: 'Non attivo',
+      unavailable: 'Non disponibile'
     },
     nav: {
       explore: 'Esplora',
@@ -1631,6 +1694,21 @@ export const messages: Dictionary = {
         records: 'Record esportabili',
         terms: 'Termini esportabili'
       },
+      syncCoverage: {
+        title: 'Copertura sync',
+        rowsWithoutMedia: 'Righe senza media',
+        orphanAssets: 'Asset orfani',
+        canonicalCollisions: 'Collisioni canoniche',
+        matchedAssets: 'Asset corrisposti',
+        coreMetadata: 'Completezza metadata core',
+        completeRows: 'Righe complete su A/B/E/H',
+        incompleteRows: 'Righe incomplete',
+        editorialFallback: 'Completezza workbook',
+        renderableRows: 'Righe complete sui campi workbook',
+        missingFallback: 'Righe workbook incomplete',
+        coverage: 'Copertura',
+        allFallback: 'Tutte le righe del workbook sono ora complete per il rendering pubblico.'
+      },
       when: {
         kicker: 'Quando usarli',
         title: 'Non tutti gli export servono ogni giorno',
@@ -1922,7 +2000,7 @@ export const messages: Dictionary = {
         response: 'Tempi di risposta',
         responseBody: 'Di solito entro 3–5 giorni lavorativi.',
         quick: 'Invio rapido',
-        quickBody: 'Il form apre il tuo client email con i campi principali gia compilati.'
+        quickBody: 'Il pulsante apre il tuo client email con un messaggio gia indirizzato.'
       },
       form: {
         name: 'Nome',
@@ -2202,7 +2280,31 @@ export const messages: Dictionary = {
       noFilters: 'Aucun filtre',
       untitled: 'Sans titre',
       countryUndefined: 'Lieu en cours de définition',
-      periodUndefined: 'Période en cours de définition'
+      periodUndefined: 'Période en cours de définition',
+      provenance: 'Provenance',
+      editorialFallback: 'Note de feuille',
+      sheet: 'Feuille',
+      row: 'Ligne',
+      canonicalKey: 'Clé canonique',
+      mediaMatch: 'Correspondance média',
+      mediaAssets: '{count} médias',
+      more: 'Plus',
+      sourceNetwork: 'Réseau source',
+      sourceLinks: 'Liens source',
+      bibliography: 'Bibliographie',
+      media: 'Médias',
+      workbookRowCaption: 'Ligne du classeur',
+      matchedViaCanonical: 'Apparié via la clé canonique',
+      matchedViaLegacy: 'Apparié via la clé héritée',
+      matchedViaAlias: 'Apparié via un alias',
+      matchedBy: 'Apparié par {value}',
+      matched: 'Correspondant',
+      partial: 'Partiel',
+      missing: 'Manquant',
+      orphan: 'Orphelin',
+      active: 'Actif',
+      inactive: 'Inactif',
+      unavailable: 'Indisponible'
     },
     nav: {
       explore: 'Explorer',
@@ -2706,6 +2808,21 @@ export const messages: Dictionary = {
         records: 'Enregistrements exportables',
         terms: 'Termes exportables'
       },
+      syncCoverage: {
+        title: 'Couverture de synchronisation',
+        rowsWithoutMedia: 'Lignes sans media',
+        orphanAssets: 'Assets orphelins',
+        canonicalCollisions: 'Collisions canoniques',
+        matchedAssets: 'Assets apparies',
+        coreMetadata: 'Completeness des metadonnees de base',
+        completeRows: 'Lignes completes sur A/B/E/H',
+        incompleteRows: 'Lignes incompletes',
+        editorialFallback: 'Completeness du workbook',
+        renderableRows: 'Lignes completes sur les champs workbook',
+        missingFallback: 'Lignes workbook incompletes',
+        coverage: 'Couverture',
+        allFallback: 'Toutes les lignes du workbook sont maintenant completes pour le rendu public.'
+      },
       when: {
         kicker: 'Quand les utiliser',
         title: 'Tous les exports ne sont pas necessaires chaque jour',
@@ -2997,7 +3114,7 @@ export const messages: Dictionary = {
         response: 'Delai de reponse',
         responseBody: 'Habituellement sous 3–5 jours ouvrables.',
         quick: 'Envoi rapide',
-        quickBody: 'Le formulaire ouvre votre client email avec les champs principaux pre-remplis.'
+        quickBody: 'Le bouton ouvre votre client email avec un message deja adresse.'
       },
       form: {
         name: 'Nom',

@@ -10,6 +10,7 @@ DB_NAME="${ATLAS_LOCAL_DB_NAME:-atlas}"
 DB_USER="${ATLAS_LOCAL_DB_USER:-atlas}"
 DB_PASSWORD="${ATLAS_LOCAL_DB_PASSWORD:-atlas}"
 DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@127.0.0.1:${DB_PORT}/${DB_NAME}"
+RESET_DB="${ATLAS_BOOTSTRAP_RESET_DB:-true}"
 
 echo "==> Preparing local ATLAS bootstrap"
 echo "    DB container: ${DB_CONTAINER_NAME}"
@@ -17,8 +18,15 @@ echo "    DB port:      ${DB_PORT}"
 echo "    App port:     ${APP_PORT}"
 
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is required for local bootstrap." >&2
-  exit 1
+  DOCKER_EXE="/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe"
+  if [ -x "${DOCKER_EXE}" ]; then
+    DOCKER_BIN="${DOCKER_EXE}"
+  else
+    echo "Docker is required for local bootstrap." >&2
+    exit 1
+  fi
+else
+  DOCKER_BIN="docker"
 fi
 
 if ! command -v npm >/dev/null 2>&1; then
@@ -26,12 +34,12 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-if docker ps -a --format '{{.Names}}' | grep -qx "${DB_CONTAINER_NAME}"; then
+if "${DOCKER_BIN}" ps -a --format '{{.Names}}' | grep -qx "${DB_CONTAINER_NAME}"; then
   echo "==> Reusing existing container ${DB_CONTAINER_NAME}"
-  docker start "${DB_CONTAINER_NAME}" >/dev/null 2>&1 || true
+  "${DOCKER_BIN}" start "${DB_CONTAINER_NAME}" >/dev/null 2>&1 || true
 else
   echo "==> Starting PostgreSQL container ${DB_CONTAINER_NAME}"
-  docker run -d \
+  "${DOCKER_BIN}" run -d \
     --name "${DB_CONTAINER_NAME}" \
     -e POSTGRES_DB="${DB_NAME}" \
     -e POSTGRES_USER="${DB_USER}" \
@@ -41,9 +49,15 @@ else
 fi
 
 echo "==> Waiting for PostgreSQL to become ready"
-until docker exec "${DB_CONTAINER_NAME}" pg_isready -U "${DB_USER}" -d "${DB_NAME}" >/dev/null 2>&1; do
+until "${DOCKER_BIN}" exec "${DB_CONTAINER_NAME}" pg_isready -U "${DB_USER}" -d "${DB_NAME}" >/dev/null 2>&1; do
   sleep 1
 done
+
+if [ "${RESET_DB}" != "false" ]; then
+  echo "==> Resetting database schema"
+  "${DOCKER_BIN}" exec -e PGPASSWORD="${DB_PASSWORD}" "${DB_CONTAINER_NAME}" \
+    psql -U "${DB_USER}" -d "${DB_NAME}" -c 'DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;'
+fi
 
 cat > "${LOCAL_ENV_FILE}" <<EOF
 DATABASE_URL="${DATABASE_URL}"

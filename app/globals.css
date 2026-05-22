@@ -36,9 +36,9 @@ html {
 body {
   @apply min-h-screen antialiased;
   background:
-    radial-gradient(circle at 8% 0%, rgba(255, 219, 177, 0.4) 0%, transparent 32%),
-    radial-gradient(circle at 96% 8%, rgba(83, 112, 99, 0.14) 0%, transparent 26%),
-    linear-gradient(180deg, rgba(239, 229, 217, 0.88), rgba(234, 224, 210, 0.98)),
+    radial-gradient(circle at 8% 0%, rgba(255, 219, 177, 0.24) 0%, transparent 30%),
+    radial-gradient(circle at 96% 8%, rgba(83, 112, 99, 0.1) 0%, transparent 24%),
+    linear-gradient(180deg, rgba(239, 229, 217, 0.9), rgba(234, 224, 210, 0.98)),
     var(--atlas-bg);
   color: var(--atlas-ink-1);
   font-family: var(--font-atlas-body), sans-serif;
@@ -89,45 +89,83 @@ textarea:focus-visible {
 }
 
 .atlas-card {
-  @apply rounded-[2rem] border p-5;
-  background:
-    linear-gradient(180deg, rgba(249, 242, 234, 0.95), rgba(244, 235, 224, 0.88)),
-    radial-gradient(circle at top right, rgba(124, 66, 31, 0.07), transparent 30%);
+  @apply rounded-[1.75rem] border p-5;
+  background: linear-gradient(180deg, rgba(250, 244, 236, 0.9), rgba(244, 235, 224, 0.84));
   border-color: var(--atlas-line);
-  box-shadow: var(--atlas-shadow);
+  box-shadow: var(--atlas-shadow-soft);
 }
 
 .atlas-panel {
-  @apply rounded-[1.6rem] border p-4;
-  background: rgba(255, 251, 247, 0.86);
-  border-color: rgba(112, 83, 61, 0.18);
-  box-shadow: var(--atlas-shadow-soft);
+  @apply rounded-[1.35rem] border p-4;
+  background: rgba(255, 251, 247, 0.9);
+  border-color: rgba(112, 83, 61, 0.16);
+  box-shadow: none;
 }
 
 .atlas-toolbar {
-  @apply rounded-[1.55rem] border px-4 py-4;
-  background:
-    linear-gradient(180deg, rgba(255, 248, 241, 0.9), rgba(247, 238, 227, 0.82));
-  border-color: rgba(112, 83, 61, 0.18);
-  box-shadow: var(--atlas-shadow-soft);
+  @apply rounded-[1.4rem] border px-4 py-4;
+  background: rgba(255, 248, 241, 0.88);
+  border-color: rgba(112, 83, 61, 0.14);
+  box-shadow: none;
 }
 
 .atlas-hero {
   background:
+    linear-gradient(145deg, rgba(251, 245, 238, 0.96), rgba(238, 225, 210, 0.92)),
+    radial-gradient(circle at 86% 12%, rgba(124, 66, 31, 0.18), transparent 24%);
+  border-color: rgba(112, 83, 61, 0.2);
+}
+
+.atlas-surface-hero {
+  @apply rounded-[2rem] border p-6;
+  background:
     linear-gradient(145deg, rgba(251, 245, 238, 0.98), rgba(238, 225, 210, 0.9)),
-    radial-gradient(circle at 85% 10%, rgba(124, 66, 31, 0.28), transparent 28%),
-    radial-gradient(circle at 12% 15%, rgba(47, 107, 85, 0.12), transparent 26%);
-  border-color: rgba(112, 83, 61, 0.24);
+    radial-gradient(circle at 88% 12%, rgba(124, 66, 31, 0.18), transparent 24%);
+  border-color: rgba(112, 83, 61, 0.2);
+  box-shadow: var(--atlas-shadow);
+}
+
+.atlas-surface-support {
+  @apply rounded-[1.6rem] border p-5;
+  background: rgba(255, 252, 247, 0.82);
+  border-color: rgba(112, 83, 61, 0.14);
+  box-shadow: none;
+}
+
+.atlas-surface-metric {
+  @apply rounded-[1.35rem] border p-4;
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(112, 83, 61, 0.12);
+}
+
+.atlas-surface-table {
+  @apply rounded-[1.6rem] border;
+  background: rgba(255, 250, 244, 0.82);
+  border-color: rgba(112, 83, 61, 0.14);
+}
+
+.atlas-surface-empty {
+  @apply rounded-[1.5rem] border border-dashed p-5;
+  border-color: rgba(112, 83, 61, 0.18);
+  background: rgba(255, 250, 244, 0.5);
+  color: var(--atlas-ink-2);
+}
+
+.atlas-surface-provenance {
+  @apply rounded-[1.6rem] border p-5;
+  background: rgba(255, 251, 247, 0.84);
+  border-color: rgba(112, 83, 61, 0.14);
+  box-shadow: none;
 }
 
 .atlas-dark-card {
-  @apply rounded-[2rem] border p-6;
+  @apply rounded-[1.85rem] border p-6;
   background:
-    linear-gradient(180deg, rgba(32, 24, 20, 0.96), rgba(20, 16, 14, 0.96)),
-    radial-gradient(circle at top right, rgba(124, 66, 31, 0.26), transparent 35%);
+    linear-gradient(180deg, rgba(31, 24, 20, 0.96), rgba(20, 16, 14, 0.96)),
+    radial-gradient(circle at top right, rgba(124, 66, 31, 0.18), transparent 30%);
   border-color: rgba(255, 255, 255, 0.08);
   color: white;
-  box-shadow: 0 28px 70px rgba(17, 11, 8, 0.32);
+  box-shadow: 0 20px 52px rgba(17, 11, 8, 0.26);
 }
 
 .atlas-dark-card .atlas-kicker,
@@ -146,7 +184,7 @@ textarea:focus-visible {
 }
 
 .atlas-chip {
-  @apply inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em];
+  @apply inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em];
   border-color: rgba(112, 83, 61, 0.22);
   background: rgba(255, 255, 255, 0.82);
   color: var(--atlas-ink-1);
@@ -214,16 +252,16 @@ textarea:focus-visible {
 }
 
 .atlas-stat {
-  @apply rounded-[1.45rem] border p-4;
-  background: rgba(255, 252, 247, 0.8);
-  border-color: rgba(112, 83, 61, 0.15);
-  box-shadow: var(--atlas-shadow-soft);
+  @apply rounded-[1.3rem] border p-4;
+  background: rgba(255, 252, 247, 0.76);
+  border-color: rgba(112, 83, 61, 0.12);
+  box-shadow: none;
 }
 
 .atlas-empty {
-  @apply rounded-[1.6rem] border border-dashed p-6 text-sm;
-  border-color: rgba(112, 83, 61, 0.24);
-  background: rgba(255, 250, 244, 0.65);
+  @apply rounded-[1.5rem] border border-dashed p-5 text-sm;
+  border-color: rgba(112, 83, 61, 0.18);
+  background: rgba(255, 250, 244, 0.5);
   color: var(--atlas-ink-2);
   overflow-wrap: anywhere;
 }
@@ -232,7 +270,7 @@ textarea:focus-visible {
   @apply inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium;
   min-width: 0;
   max-width: 100%;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .atlas-link-primary {
@@ -315,10 +353,10 @@ textarea:focus-visible {
 }
 
 .atlas-nav-link {
-  @apply inline-flex min-w-0 items-center rounded-full px-3 py-2 text-sm font-medium;
+  @apply inline-flex min-w-0 items-center rounded-full px-2.5 py-1.5 text-[13px] font-medium;
   max-width: 100%;
   color: var(--atlas-ink-2);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .atlas-nav-link:hover {
@@ -327,31 +365,31 @@ textarea:focus-visible {
 }
 
 .atlas-nav-link-active {
-  background: rgba(24, 17, 13, 0.92);
+  background: rgba(24, 17, 13, 0.9);
   color: white;
 }
 
 .atlas-page-intent {
-  @apply atlas-card;
-  background:
-    linear-gradient(180deg, rgba(248, 241, 232, 0.94), rgba(241, 230, 216, 0.88)),
-    radial-gradient(circle at 88% 18%, rgba(124, 66, 31, 0.18), transparent 28%);
-}
-
-.atlas-editorial-rail {
   @apply rounded-[2rem] border p-6;
   background:
-    linear-gradient(180deg, rgba(255, 250, 244, 0.9), rgba(246, 238, 229, 0.84));
-  border-color: rgba(112, 83, 61, 0.18);
+    linear-gradient(145deg, rgba(251, 245, 238, 0.98), rgba(238, 225, 210, 0.9)),
+    radial-gradient(circle at 88% 12%, rgba(124, 66, 31, 0.18), transparent 24%);
+  border-color: rgba(112, 83, 61, 0.2);
   box-shadow: var(--atlas-shadow);
 }
 
+.atlas-editorial-rail {
+  @apply rounded-[1.6rem] border p-5;
+  background: rgba(255, 252, 247, 0.82);
+  border-color: rgba(112, 83, 61, 0.14);
+  box-shadow: none;
+}
+
 .atlas-result-card {
-  @apply block rounded-[1.8rem] border p-5;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(247, 239, 229, 0.84));
-  border-color: rgba(112, 83, 61, 0.18);
-  box-shadow: var(--atlas-shadow-soft);
+  @apply block rounded-[1.6rem] border p-5;
+  background: rgba(255, 252, 247, 0.82);
+  border-color: rgba(112, 83, 61, 0.14);
+  box-shadow: none;
 }
 
 .atlas-result-card:hover {
@@ -360,21 +398,22 @@ textarea:focus-visible {
 }
 
 .atlas-feature-tile {
-  @apply rounded-[2rem] border p-6;
+  @apply block rounded-[2rem] border p-6;
   background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(245, 234, 222, 0.84));
-  border-color: rgba(112, 83, 61, 0.18);
+    linear-gradient(145deg, rgba(251, 245, 238, 0.98), rgba(238, 225, 210, 0.9)),
+    radial-gradient(circle at 88% 12%, rgba(124, 66, 31, 0.18), transparent 24%);
+  border-color: rgba(112, 83, 61, 0.2);
   box-shadow: var(--atlas-shadow);
 }
 
 .atlas-poster-panel {
-  @apply rounded-[2rem] border p-6;
+  @apply rounded-[1.85rem] border p-6;
   background:
     linear-gradient(160deg, rgba(31, 24, 21, 0.98), rgba(20, 16, 14, 0.97)),
-    radial-gradient(circle at 84% 16%, rgba(124, 66, 31, 0.32), transparent 30%);
+    radial-gradient(circle at 84% 16%, rgba(124, 66, 31, 0.2), transparent 28%);
   border-color: rgba(255, 255, 255, 0.08);
   color: white;
-  box-shadow: 0 34px 80px rgba(17, 11, 8, 0.28);
+  box-shadow: 0 24px 60px rgba(17, 11, 8, 0.24);
 }
 
 .atlas-poster-panel .atlas-kicker,
@@ -408,10 +447,10 @@ textarea:focus-visible {
 }
 
 .atlas-filter-bar {
-  @apply rounded-[1.5rem] border px-4 py-3;
-  background: rgba(255, 252, 247, 0.74);
-  border-color: rgba(112, 83, 61, 0.14);
-  box-shadow: var(--atlas-shadow-soft);
+  @apply rounded-[1.35rem] border px-4 py-3;
+  background: rgba(255, 252, 247, 0.8);
+  border-color: rgba(112, 83, 61, 0.12);
+  box-shadow: none;
 }
 
 .atlas-stat-rail {
@@ -427,23 +466,70 @@ textarea:focus-visible {
 }
 
 .atlas-workspace-shell {
-  @apply rounded-[2rem] border p-4 lg:p-5;
-  background:
-    linear-gradient(180deg, rgba(244, 235, 225, 0.94), rgba(237, 227, 214, 0.9));
-  border-color: rgba(112, 83, 61, 0.18);
+  @apply rounded-[1.75rem] border p-4 lg:p-5;
+  background: linear-gradient(180deg, rgba(244, 235, 225, 0.92), rgba(237, 227, 214, 0.88));
+  border-color: rgba(112, 83, 61, 0.14);
 }
 
 .atlas-action-strip {
   @apply flex flex-wrap items-center gap-2;
 }
 
+.atlas-signal-strip {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.75rem), 1fr));
+}
+
+.atlas-signal {
+  @apply rounded-[1.1rem] border px-3.5 py-3;
+  display: grid;
+  gap: 0.3rem;
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(112, 83, 61, 0.14);
+  box-shadow: none;
+}
+
+.atlas-signal-overflow {
+  align-content: center;
+  justify-items: center;
+  background: rgba(24, 17, 13, 0.06);
+}
+
+.atlas-signal-label {
+  @apply text-[11px] uppercase tracking-[0.2em];
+  color: var(--atlas-ink-3);
+}
+
+.atlas-signal-value {
+  @apply text-sm font-semibold leading-6;
+  color: var(--atlas-ink-1);
+  overflow-wrap: anywhere;
+}
+
+.atlas-signal-success {
+  background: rgba(47, 107, 85, 0.08);
+  border-color: rgba(47, 107, 85, 0.18);
+}
+
+.atlas-signal-warning {
+  background: rgba(155, 102, 42, 0.09);
+  border-color: rgba(155, 102, 42, 0.2);
+}
+
+.atlas-signal-danger {
+  background: rgba(166, 69, 61, 0.09);
+  border-color: rgba(166, 69, 61, 0.2);
+}
+
+.atlas-signal-neutral {
+  background: rgba(255, 255, 255, 0.64);
+}
+
 .atlas-section-shell {
-  @apply rounded-[2rem] border p-5 lg:p-6;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(245, 236, 226, 0.86)),
-    radial-gradient(circle at top right, rgba(124, 66, 31, 0.08), transparent 34%);
-  border-color: rgba(112, 83, 61, 0.18);
-  box-shadow: var(--atlas-shadow-soft);
+  @apply rounded-[1.6rem] border p-5 lg:p-6;
+  background: rgba(255, 250, 244, 0.82);
+  border-color: rgba(112, 83, 61, 0.14);
 }
 
 .atlas-metric-grid {
@@ -453,9 +539,9 @@ textarea:focus-visible {
 }
 
 .atlas-metric-card {
-  @apply rounded-[1.4rem] border p-4;
-  background: rgba(255, 255, 255, 0.62);
-  border-color: rgba(112, 83, 61, 0.14);
+  @apply rounded-[1.35rem] border p-4;
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(112, 83, 61, 0.12);
 }
 
 .atlas-metric-card strong {

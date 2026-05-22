@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/components/i18n-provider';
+import { getMediaMatchLabel } from '@/lib/content/labels';
 
 type MapEntry = {
   id: string;
@@ -16,8 +17,14 @@ type MapEntry = {
   sheetRowNumber?: number | null;
   sheetKey?: string | null;
   mediaAssetCount?: number;
+  mediaMatchStatus?: string | null;
   taxonomyTerms?: string[];
   taxonomyByGroup?: Record<string, string[]>;
+  lat: number | null;
+  lng: number | null;
+};
+
+type MapEntryWithCoordinates = MapEntry & {
   lat: number;
   lng: number;
 };
@@ -87,7 +94,7 @@ function getCollection(entries: MapEntry[], matcher: string[]) {
 }
 
 export function LeafletMapExplorer({ entries }: { entries: MapEntry[] }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [query, setQuery] = useState('');
   const [activeCountry, setActiveCountry] = useState('all');
   const [activeType, setActiveType] = useState('all');
@@ -104,7 +111,8 @@ export function LeafletMapExplorer({ entries }: { entries: MapEntry[] }) {
   const markerRegistryRef = useRef<MarkerRegistry>(new Map());
 
   const validEntries = useMemo(
-    () => entries.filter((entry) => Number.isFinite(entry.lat) && Number.isFinite(entry.lng) && !(entry.lat === 0 && entry.lng === 0)),
+    () =>
+      entries.filter((entry): entry is MapEntryWithCoordinates => Number.isFinite(entry.lat) && Number.isFinite(entry.lng)),
     [entries]
   );
 
@@ -252,6 +260,20 @@ export function LeafletMapExplorer({ entries }: { entries: MapEntry[] }) {
   const featuredCount = filtered.filter((entry) => entry.featured).length;
   const activeYearLabel = selectedYear === null ? t('mapExplorer.filters.allYears') : String(selectedYear);
 
+  function mediaTone(status?: string | null) {
+    switch (status) {
+      case 'matched':
+        return 'atlas-chip-success';
+      case 'partial':
+        return 'atlas-chip-warning';
+      case 'missing':
+      case 'orphan':
+        return 'atlas-chip-danger';
+      default:
+        return '';
+    }
+  }
+
   return (
     <div className="space-y-5">
       <section className="atlas-dark-card min-w-0 space-y-5">
@@ -388,8 +410,9 @@ export function LeafletMapExplorer({ entries }: { entries: MapEntry[] }) {
                   <span className="atlas-badge-status">{highlightedEntry.countryName}</span>
                   {highlightedEntry.featured ? <span className="atlas-chip atlas-chip-active">{t('mapExplorer.preview.featured')}</span> : null}
                   {highlightedEntry.sheetKey ? <span className="atlas-chip">{highlightedEntry.sheetKey}</span> : null}
-                  {highlightedEntry.sheetRowNumber ? <span className="atlas-chip">riga {highlightedEntry.sheetRowNumber}</span> : null}
-                  <span className="atlas-chip">{highlightedEntry.mediaAssetCount ?? 0} media</span>
+                  {highlightedEntry.sheetRowNumber ? <span className="atlas-chip">{t('common.row')} {highlightedEntry.sheetRowNumber}</span> : null}
+                  {highlightedEntry.mediaMatchStatus ? <span className={`atlas-chip ${mediaTone(highlightedEntry.mediaMatchStatus)}`}>{getMediaMatchLabel(highlightedEntry.mediaMatchStatus, locale)}</span> : null}
+                  <span className="atlas-chip">{t('common.mediaAssets', { count: highlightedEntry.mediaAssetCount ?? 0 })}</span>
                   {(highlightedEntry.taxonomyTerms ?? []).slice(0, 4).map((term) => (
                     <span key={`${highlightedEntry.id}-${term}`} className="atlas-chip">
                       {term}
@@ -463,8 +486,9 @@ export function LeafletMapExplorer({ entries }: { entries: MapEntry[] }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="atlas-badge-status">{entry.countryName}</span>
                     {entry.sheetKey ? <span className="atlas-chip">{entry.sheetKey}</span> : null}
-                    {entry.sheetRowNumber ? <span className="atlas-chip">riga {entry.sheetRowNumber}</span> : null}
-                    <span className="atlas-chip">{entry.mediaAssetCount ?? 0} media</span>
+                    {entry.sheetRowNumber ? <span className="atlas-chip">{t('common.row')} {entry.sheetRowNumber}</span> : null}
+                    {entry.mediaMatchStatus ? <span className={`atlas-chip ${mediaTone(entry.mediaMatchStatus)}`}>{getMediaMatchLabel(entry.mediaMatchStatus, locale)}</span> : null}
+                    <span className="atlas-chip">{t('common.mediaAssets', { count: entry.mediaAssetCount ?? 0 })}</span>
                     {(entry.taxonomyTerms ?? []).slice(0, 3).map((term) => (
                       <span key={`${entry.id}-${term}`} className="atlas-chip">
                         {term}

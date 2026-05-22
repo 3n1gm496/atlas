@@ -2,12 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { hashSync } from 'bcryptjs';
 import cartel2Rows from '../data/cartel2.dataset.json';
 import { type Cartel2SnapshotRow } from '@/lib/dataset/cartel2-sync';
-import {
-  DEMO_COLLECTION_DEFINITIONS,
-  buildDemoCollectionSections,
-  type DemoEntrySummary
-} from '@/lib/content/demo-collections';
-import { getWorkbookEditorialFallback } from '@/lib/content/workbook-editorial-fallbacks';
 
 const prisma = new PrismaClient();
 
@@ -426,9 +420,8 @@ function buildPublishedFixtures() {
     const primaryCountry = resolvePrimaryCountry(row);
     const country = countryData.find((item) => item.name === primaryCountry) ?? countryData[0];
     const mediaAssets = row.media.assets;
-    const editorialFallback = getWorkbookEditorialFallback(rowId);
-    const abstract = buildAbstract(row) || editorialFallback?.abstract || row.B;
-    const description = buildDescription(row) || editorialFallback?.description || `Editorially curated concept card for ${row.B}.`;
+    const abstract = buildAbstract(row) || row.B;
+    const description = buildDescription(row) || buildAbstract(row) || row.B;
 
     return {
       workbookId: rowId,
@@ -437,7 +430,7 @@ function buildPublishedFixtures() {
       subtitle: row.C,
       abstract,
       description,
-      editorialNote: [row.L, row.K].filter(Boolean).join(' · ') || editorialFallback?.note || null,
+      editorialNote: [row.L, row.K].filter(Boolean).join(' · ') || null,
       canonicalLanguage: canonicalLanguageForRow(row),
       countryCode: country.code,
       lat: country.lat,
@@ -467,15 +460,7 @@ function buildPublishedFixtures() {
         engagement: row.R || null,
         sourceNetwork: splitValues(row.S),
         accounts: splitValues(row.S),
-        media: mediaAssets.map((asset) => asset.url),
-        editorialFallback: editorialFallback
-          ? {
-              workbookId: rowId,
-              note: editorialFallback.note,
-              abstract: editorialFallback.abstract,
-              description: editorialFallback.description
-            }
-          : null
+        media: mediaAssets.map((asset) => asset.url)
       },
       mediaAssets
     } satisfies PublishedFixture;
@@ -661,8 +646,6 @@ async function main() {
   // Published entries (from the workbook dataset)
   // ------------------------------------------------------------------
   const publishedEntries = [];
-  const publishedEntriesByWorkbookId = new Map<string, DemoEntrySummary>();
-  const publishedEntryIdByWorkbookId = new Map<string, string>();
   for (let i = 0; i < publishedFixtures.length; i++) {
     const f = publishedFixtures[i];
     const country = countriesById[f.countryCode];
@@ -692,15 +675,6 @@ async function main() {
       },
     });
     publishedEntries.push(entry);
-    publishedEntryIdByWorkbookId.set(f.workbookId, entry.id);
-    publishedEntriesByWorkbookId.set(f.workbookId, {
-      workbookId: f.workbookId,
-      slug: entry.slug,
-      title: entry.title,
-      abstract: entry.abstract,
-      countryName: country.name,
-      timePeriodLabel: entry.timePeriodLabel ?? null
-    });
 
     const termIds = collectTaxonomyIds(cartel2Rows[i] as Cartel2SnapshotRow);
     if (termIds.length) {
@@ -742,45 +716,6 @@ async function main() {
     await prisma.bibliographyItem.create({
       data: { entryId: entry.id, citation: `Cartel2.xlsx (${f.workbookId}). ${f.title}. ATLAS dataset.` },
     });
-  }
-
-  // ------------------------------------------------------------------
-  // Collections curated from the published workbook entries
-  // ------------------------------------------------------------------
-  for (const definition of DEMO_COLLECTION_DEFINITIONS) {
-    const collection = await prisma.collection.create({
-      data: {
-        slug: definition.slug,
-        title: definition.title,
-        intro: definition.intro
-      }
-    });
-
-    const sections = buildDemoCollectionSections(definition, publishedEntriesByWorkbookId);
-    await prisma.collectionSection.createMany({
-      data: sections.map((section, index) => ({
-        collectionId: collection.id,
-        title: section.title,
-        content: section.content,
-        orderIndex: index
-      }))
-    });
-
-    const collectionEntries = definition.workbookIds.flatMap((workbookId, index) => {
-      const entryId = publishedEntryIdByWorkbookId.get(workbookId);
-      if (!entryId) return [];
-      return [
-        {
-          collectionId: collection.id,
-          entryId,
-          orderIndex: index
-        }
-      ];
-    });
-
-    if (collectionEntries.length > 0) {
-      await prisma.collectionEntry.createMany({ data: collectionEntries });
-    }
   }
 
   console.log(`

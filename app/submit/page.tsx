@@ -22,6 +22,11 @@ export default async function SubmitPage() {
         title={t('submitDashboard.title')}
         description={t('submitDashboard.description')}
         breadcrumb={t('submitDashboard.breadcrumb')}
+        signals={[
+          { label: t('submitDashboard.stats.drafts'), value: String(draftCount) },
+          { label: t('submitDashboard.stats.submitted'), value: String(submittedCount) },
+          { label: t('submitDashboard.stats.changes'), value: String(changesRequestedCount) }
+        ]}
         actions={[
           { href: '/submit/new', label: t('submitDashboard.actions.new') },
           { href: '/account/submissions', label: t('submitDashboard.actions.history'), variant: 'secondary' }

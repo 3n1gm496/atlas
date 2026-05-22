@@ -47,10 +47,11 @@ export default async function MapPage({
             sheetRowNumber: entry.sheetRowNumber,
             sheetKey: entry.sheetKey,
             mediaAssetCount: entry.mediaAssetCount,
+            mediaMatchStatus: entry.mediaMatchStatus,
             taxonomyTerms: entry.taxonomyTerms,
             taxonomyByGroup: entry.taxonomyByGroup,
-            lat: entry.lat ?? 0,
-            lng: entry.lng ?? 0
+            lat: entry.lat,
+            lng: entry.lng
           }))}
         />
       )}

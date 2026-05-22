@@ -25,13 +25,10 @@ const publicRoutes = [
   '/contact',
   '/methodology',
   '/collections',
-  '/collections/diaspora-traces',
   '/taxonomy',
-  '/taxonomy/typological',
   '/search',
   '/archive',
   '/map',
-  '/entry/why-are-you-dressed-like-that-21024',
   '/login',
   '/register',
   '/forgot-password',
@@ -69,6 +66,10 @@ const adminRoutes = [
 
 function safeName(route) {
   return route === '/' ? 'home' : route.replace(/[/:?&=#]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function uniqueRoutes(routes) {
+  return [...new Set(routes)];
 }
 
 async function ensureDir(dir) {
@@ -111,6 +112,26 @@ async function buildContext(browser, baseURL, viewport, auth) {
     await page.close();
   }
   return { context };
+}
+
+async function discoverDetailRoutes(context, baseURL, route, selector) {
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}${route}`, { waitUntil: 'networkidle', timeout: 30000 });
+    return await page.$$eval(selector, (nodes) =>
+      nodes
+        .map((node) => {
+          if (!(node instanceof HTMLAnchorElement)) return null;
+          return node.getAttribute('href');
+        })
+        .filter((href) => typeof href === 'string' && href.length > 0)
+        .map((href) => href.split('?')[0])
+    );
+  } catch {
+    return [];
+  } finally {
+    await page.close();
+  }
 }
 
 async function detectOverflow(page) {
@@ -247,8 +268,16 @@ async function runAudit(browser, baseURL) {
 
   for (const viewport of viewports) {
     const viewportDir = path.join(targetDir, viewport.name);
+    const discoveryContext = await browser.newContext({ viewport });
+    const discoveredPublicRoutes = uniqueRoutes([
+      ...filterRoutes(await discoverDetailRoutes(discoveryContext, baseURL, '/archive', 'a[href^="/entry/"]')),
+      ...filterRoutes(await discoverDetailRoutes(discoveryContext, baseURL, '/collections', 'a[href^="/collections/"]')),
+      ...filterRoutes(await discoverDetailRoutes(discoveryContext, baseURL, '/taxonomy', 'a[href^="/taxonomy/"]'))
+    ]).filter((route) => route !== '/collections' && route !== '/taxonomy');
+    await discoveryContext.close();
+
     const groups = [];
-    groups.push(await runGroup(browser, baseURL, viewport, 'public', filterRoutes(publicRoutes), null, viewportDir));
+    groups.push(await runGroup(browser, baseURL, viewport, 'public', filterRoutes(uniqueRoutes([...publicRoutes, ...discoveredPublicRoutes])), null, viewportDir));
     groups.push(
       await runGroup(browser, baseURL, viewport, 'contributor', filterRoutes(contributorRoutes), {
         email: 'contributor@atlas.local',

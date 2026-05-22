@@ -1,5 +1,3 @@
-import { hasWorkbookEditorialFallback } from '@/lib/content/workbook-editorial-fallbacks';
-
 export const CARTEL2_SHEET_NAME = 'sheet1' as const;
 
 export const CARTEL2_COLUMNS = [
@@ -239,9 +237,9 @@ export function buildCartel2SyncReport(rows: Cartel2SnapshotRow[], allAssets: Ca
   const coreMetadataMissingRowNumbers = rows
     .filter((row) => !CARTEL2_CORE_COLUMNS.every((column) => Boolean(row[column].trim())))
     .map((row) => row.rowNumber);
-  const rowsRenderableWithEditorialFallback = rows.filter((row) => CARTEL2_CORE_COLUMNS.every((column) => Boolean(row[column].trim())) || hasWorkbookEditorialFallback(row.A)).length;
+  const rowsRenderableWithEditorialFallback = rowsWithCoreMetadata;
   const editorialFallbackMissingRowNumbers = rows
-    .filter((row) => !(CARTEL2_CORE_COLUMNS.every((column) => Boolean(row[column].trim())) || hasWorkbookEditorialFallback(row.A)))
+    .filter((row) => !CARTEL2_CORE_COLUMNS.every((column) => Boolean(row[column].trim())))
     .map((row) => row.rowNumber);
   const matchedAssets = rows.reduce((count, row) => count + row.media.assetCount, 0);
   const orphanAssetNames = allAssets.filter((asset) => !rows.some((row) => row.media.assets.some((matched) => matched.fileName === asset.fileName))).map((asset) => asset.fileName);

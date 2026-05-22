@@ -38,7 +38,7 @@ export function checkDatasetReadiness(): { ok: boolean; reason?: string; report?
     if (rowsRenderableWithEditorialFallback !== rowsTotal) {
       return {
         ok: false,
-        reason: 'not all workbook rows are renderable with editorial fallback',
+        reason: 'not all workbook rows are complete',
         report: { rowsTotal, rowsRenderableWithEditorialFallback, editorialFallbackCoverage, rowsWithCanonicalCollision, orphanAssets }
       };
     }

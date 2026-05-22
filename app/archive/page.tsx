@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { getArchiveEntries, getArchiveFilterOptions } from '@/lib/services/public-content';
 import { PageIntentHeader } from '@/components/page-intent-header';
+import { getMediaMatchLabel } from '@/lib/content/labels';
 import { getI18n } from '@/lib/i18n/server';
 
 type SearchParams = { q?: string; country?: string; taxonomy?: string; keyword?: string; year?: string; view?: string };
@@ -18,10 +19,24 @@ function buildQueryString(searchParams: SearchParams, overrides: Partial<SearchP
 
 export default async function ArchivePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const { t } = getI18n();
+  const { t, locale } = getI18n();
   const [entries, filterOptions] = await Promise.all([getArchiveEntries(resolvedSearchParams), getArchiveFilterOptions()]);
   const countries = filterOptions.countries;
   const activeView = resolvedSearchParams.view === 'list' ? 'list' : 'grid';
+
+  function mediaTone(status?: string | null) {
+    switch (status) {
+      case 'matched':
+        return 'atlas-chip-success';
+      case 'partial':
+        return 'atlas-chip-warning';
+      case 'missing':
+      case 'orphan':
+        return 'atlas-chip-danger';
+      default:
+        return '';
+    }
+  }
 
   const activeFilters = [
     resolvedSearchParams.q ? { label: t('archive.queryFilter', { value: resolvedSearchParams.q }), href: `/archive?${buildQueryString(resolvedSearchParams, { q: undefined })}` } : null,
@@ -98,17 +113,18 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="atlas-badge-status">{entry.countryName}</span>
-                    {entry.editorialNote ? <span className="atlas-chip">Editorial fallback</span> : null}
+                    {entry.editorialNote ? <span className="atlas-chip atlas-chip-warning">{t('common.editorialFallback')}</span> : null}
                     {entry.featured ? <span className="atlas-chip atlas-chip-active">{t('archive.featured')}</span> : null}
                     {entry.sheetKey ? <span className="atlas-chip">{entry.sheetKey}</span> : null}
-                    {entry.sheetRowNumber ? <span className="atlas-chip">riga {entry.sheetRowNumber}</span> : null}
-                    <span className="atlas-chip">{entry.mediaAssetCount} media</span>
+                    {entry.sheetRowNumber ? <span className="atlas-chip">{t('common.row')} {entry.sheetRowNumber}</span> : null}
+                    {entry.mediaMatchStatus ? <span className={`atlas-chip ${mediaTone(entry.mediaMatchStatus)}`}>{getMediaMatchLabel(entry.mediaMatchStatus, locale)}</span> : null}
+                    <span className="atlas-chip">{t('common.mediaAssets', { count: entry.mediaAssetCount })}</span>
                   </div>
                   <h2 className="text-xl font-semibold text-[color:var(--atlas-ink-1)]">{entry.title}</h2>
                   <p className="max-w-3xl text-sm leading-6 text-[color:var(--atlas-ink-2)]">{entry.abstract}</p>
                   {entry.taxonomyByGroup ? (
                     <div className="flex flex-wrap gap-2">
-                      {Object.entries(entry.taxonomyByGroup).slice(0, 3).map(([group, terms]) => (
+                      {Object.entries(entry.taxonomyByGroup).slice(0, 2).map(([group, terms]) => (
                         <span key={`${entry.id}-${group}`} className="atlas-chip">
                           {group} · {terms.length}
                         </span>
@@ -117,7 +133,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
                   ) : null}
                   {entry.taxonomyTerms?.length ? (
                     <div className="flex flex-wrap gap-2">
-                      {entry.taxonomyTerms.slice(0, 8).map((term) => (
+                      {entry.taxonomyTerms.slice(0, 4).map((term) => (
                         <span key={`${entry.id}-${term}`} className="atlas-chip">
                           {term}
                         </span>
@@ -139,17 +155,18 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
             <Link key={entry.id} href={`/entry/${entry.slug}`} className={entry.featured ? 'atlas-feature-tile md:col-span-2' : 'atlas-result-card'}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="atlas-badge-status">{entry.countryName}</span>
-                {entry.editorialNote ? <span className="atlas-chip">Editorial fallback</span> : null}
+                {entry.editorialNote ? <span className="atlas-chip atlas-chip-warning">{t('common.editorialFallback')}</span> : null}
                 {entry.featured ? <span className="atlas-chip atlas-chip-active">{t('archive.featured')}</span> : null}
                 {entry.sheetKey ? <span className="atlas-chip">{entry.sheetKey}</span> : null}
-                {entry.sheetRowNumber ? <span className="atlas-chip">riga {entry.sheetRowNumber}</span> : null}
-                <span className="atlas-chip">{entry.mediaAssetCount} media</span>
+                {entry.sheetRowNumber ? <span className="atlas-chip">{t('common.row')} {entry.sheetRowNumber}</span> : null}
+                {entry.mediaMatchStatus ? <span className={`atlas-chip ${mediaTone(entry.mediaMatchStatus)}`}>{getMediaMatchLabel(entry.mediaMatchStatus, locale)}</span> : null}
+                <span className="atlas-chip">{t('common.mediaAssets', { count: entry.mediaAssetCount })}</span>
               </div>
               <h2 className="mt-4 text-lg font-semibold text-[color:var(--atlas-ink-1)]">{entry.title}</h2>
               <p className="mt-3 line-clamp-4 text-sm leading-6 text-[color:var(--atlas-ink-2)]">{entry.abstract}</p>
               {entry.taxonomyByGroup ? (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {Object.entries(entry.taxonomyByGroup).slice(0, 2).map(([group, terms]) => (
+                  {Object.entries(entry.taxonomyByGroup).slice(0, 1).map(([group, terms]) => (
                     <span key={`${entry.id}-${group}`} className="atlas-chip">
                       {group} · {terms.length}
                     </span>
@@ -158,7 +175,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
               ) : null}
               {entry.taxonomyTerms?.length ? (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {entry.taxonomyTerms.slice(0, 6).map((term) => (
+                  {entry.taxonomyTerms.slice(0, 4).map((term) => (
                     <span key={`${entry.id}-${term}`} className="atlas-chip">
                       {term}
                     </span>

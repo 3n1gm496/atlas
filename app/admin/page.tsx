@@ -37,14 +37,21 @@ export default async function AdminPage() {
         title={t('admin.title')}
         description={t('admin.description')}
         breadcrumb={t('admin.breadcrumb')}
+        signalOverflowLabel={t('common.more')}
+        signals={[
+          { label: t('admin.stats.cards'), value: String(overview.entries) },
+          { label: t('admin.stats.users'), value: String(overview.users) },
+          { label: t('admin.stats.collections'), value: String(overview.collections) },
+          { label: t('admin.stats.terms'), value: String(overview.taxonomyTerms) }
+        ]}
         actions={[{ href: '/review', label: t('admin.actions.review'), variant: 'secondary' }]}
       />
 
       <div className="grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
-        <section className="atlas-card space-y-4">
+        <section className="atlas-surface-support space-y-4">
           <div>
             <p className="atlas-kicker">{t('admin.today.kicker')}</p>
-            <h2 className="text-2xl font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.today.title')}</h2>
+            <h2 className="atlas-section-title text-3xl">{t('admin.today.title')}</h2>
           </div>
           {alerts.length === 0 ? (
             <div className="atlas-empty">{t('admin.today.empty')}</div>
@@ -83,40 +90,40 @@ export default async function AdminPage() {
       </div>
 
       <section className="grid gap-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <article className="atlas-feature-tile">
-              <p className="atlas-kicker">{t('admin.pipeline.inProgress')}</p>
-              <p className="mt-3 font-[family-name:var(--font-atlas-display)] text-5xl font-semibold text-[color:var(--atlas-ink-1)]">{overview.underReview}</p>
-            </article>
-            <article className="atlas-feature-tile">
-              <p className="atlas-kicker">{t('admin.pipeline.published')}</p>
-              <p className="mt-3 font-[family-name:var(--font-atlas-display)] text-5xl font-semibold text-[color:var(--atlas-ink-1)]">{overview.published}</p>
-            </article>
-          </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <article className="atlas-feature-tile">
+            <p className="atlas-kicker">{t('admin.pipeline.inProgress')}</p>
+            <p className="mt-3 font-[family-name:var(--font-atlas-display)] text-5xl font-semibold text-[color:var(--atlas-ink-1)]">{overview.underReview}</p>
+          </article>
+          <article className="atlas-feature-tile">
+            <p className="atlas-kicker">{t('admin.pipeline.published')}</p>
+            <p className="mt-3 font-[family-name:var(--font-atlas-display)] text-5xl font-semibold text-[color:var(--atlas-ink-1)]">{overview.published}</p>
+          </article>
+        </div>
 
-          <div className="atlas-card space-y-4">
-            <div>
-              <p className="atlas-kicker">{t('admin.quick.kicker')}</p>
-            </div>
-            <div className="atlas-plain-list">
-              <Link href="/admin/users" className="atlas-plain-row">
-                <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.users')}</p>
-              </Link>
-              <Link href="/admin/taxonomies" className="atlas-plain-row">
-                <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.taxonomy')}</p>
-              </Link>
-              <Link href="/admin/entries" className="atlas-plain-row">
-                <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.cards')}</p>
-              </Link>
-              <Link href="/map" className="atlas-plain-row">
-                <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.map')}</p>
-              </Link>
-              <Link href="/admin/import-export" className="atlas-plain-row">
-                <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.export')}</p>
-              </Link>
-            </div>
+        <div className="atlas-surface-support space-y-4">
+          <div>
+            <p className="atlas-kicker">{t('admin.quick.kicker')}</p>
           </div>
-        </section>
+          <div className="grid gap-2 md:grid-cols-2">
+            <Link href="/admin/users" className="atlas-plain-row">
+              <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.users')}</p>
+            </Link>
+            <Link href="/admin/taxonomies" className="atlas-plain-row">
+              <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.taxonomy')}</p>
+            </Link>
+            <Link href="/admin/entries" className="atlas-plain-row">
+              <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.cards')}</p>
+            </Link>
+            <Link href="/map" className="atlas-plain-row">
+              <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.map')}</p>
+            </Link>
+            <Link href="/admin/import-export" className="atlas-plain-row">
+              <p className="font-semibold text-[color:var(--atlas-ink-1)]">{t('admin.quick.export')}</p>
+            </Link>
+          </div>
+        </div>
+      </section>
     </section>
   );
 }

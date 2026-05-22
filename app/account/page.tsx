@@ -19,6 +19,11 @@ export default async function AccountPage() {
         title={t('account.title')}
         description={t('account.description')}
         breadcrumb={t('account.breadcrumb')}
+        signals={[
+          { label: t('account.quick.cardsOpened'), value: String(overview.submissions) },
+          { label: t('account.quick.role'), value: getRoleLabel(user?.role?.name ?? 'guest', locale) },
+          { label: t('account.quick.latestStatus'), value: overview.recentEntries[0] ? getStatusLabel(overview.recentEntries[0].status, locale) : t('account.quick.noActivity') }
+        ]}
         actions={[
           { href: '/submit/new', label: t('account.actions.newCard') },
           { href: '/account/profile', label: t('account.actions.editProfile'), variant: 'secondary' }

@@ -20,6 +20,11 @@ export default async function AdminEntriesPage() {
         title={t('adminEntries.title')}
         description={t('adminEntries.description')}
         breadcrumb={t('adminEntries.breadcrumb')}
+        signals={[
+          { label: t('adminEntries.stats.visible'), value: String(entries.length) },
+          { label: t('adminEntries.stats.drafts'), value: String(drafts) },
+          { label: t('adminEntries.stats.inProgress'), value: String(submitted) }
+        ]}
       />
       <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
         <section className="atlas-poster-panel space-y-5">

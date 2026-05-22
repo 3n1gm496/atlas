@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useI18n } from '@/components/i18n-provider';
@@ -18,6 +18,7 @@ export function Nav() {
   const pathname = usePathname();
   const role = session?.user?.role;
   const canAdmin = role === 'super_admin' || role === 'research_admin';
+
   const exploreLinks = [
     { href: '/map', label: t('nav.map') },
     { href: '/archive', label: t('nav.archive') },
@@ -28,7 +29,6 @@ export function Nav() {
     { href: '/taxonomy', label: t('nav.taxonomies') },
     { href: '/contact', label: t('nav.contact') }
   ];
-
   const workspaceLinks = session
     ? [
         { href: '/submit/new', label: t('common.newCard'), visible: true },
@@ -66,31 +66,68 @@ function NavContent({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuId = 'atlas-mobile-nav';
+
+  useEffect(() => {
+    if (!accountOpen) return;
+
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (accountMenuRef.current?.contains(target)) return;
+      setAccountOpen(false);
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setAccountOpen(false);
+    }
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [accountOpen]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-[rgba(112,83,61,0.14)] bg-[rgba(247,241,234,0.82)] backdrop-blur-2xl">
-      <div className="container flex items-center justify-between gap-3 py-3">
+      <div className="container flex items-center justify-between gap-3 py-2.5">
         <Link href="/" className="flex min-w-0 items-center gap-3 rounded-full px-1 py-1">
           <div className="hidden h-10 w-10 rounded-full border border-[rgba(112,83,61,0.16)] bg-[linear-gradient(135deg,var(--atlas-accent)_0%,#2f6b55_100%)] shadow-[0_10px_24px_rgba(24,17,13,0.12)] sm:block" />
           <div className="min-w-0">
-            <p className="font-[family-name:var(--font-atlas-display)] text-xl font-semibold leading-none text-[color:var(--atlas-ink-1)] sm:text-2xl">{t('brand.name')}</p>
-            <p className="mt-1 hidden max-w-[24rem] truncate text-[11px] uppercase tracking-[0.18em] text-[color:var(--atlas-ink-3)] lg:block">{t('brand.subtitle')}</p>
+            <p className="font-[family-name:var(--font-atlas-display)] text-xl font-semibold leading-none text-[color:var(--atlas-ink-1)] sm:text-2xl">
+              {t('brand.name')}
+            </p>
+            <p className="mt-1 hidden max-w-[24rem] truncate text-[11px] uppercase tracking-[0.18em] text-[color:var(--atlas-ink-3)] lg:block">
+              {t('brand.subtitle')}
+            </p>
           </div>
         </Link>
 
-        <div className="hidden flex-1 items-center justify-end gap-3 xl:flex">
-          <nav className="flex items-center gap-1 rounded-full border border-[rgba(112,83,61,0.12)] bg-[rgba(255,252,248,0.6)] px-2 py-1.5">
+        <div className="hidden flex-1 items-center justify-end gap-2 xl:flex">
+          <nav className="flex items-center gap-1 rounded-full border border-[rgba(112,83,61,0.12)] bg-[rgba(255,252,248,0.64)] px-2 py-1.5">
             {exploreLinks.map((link) => (
-              <Link key={link.href} href={link.href} className={`atlas-nav-link ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''}`}>
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`atlas-nav-link whitespace-nowrap text-[12px] uppercase tracking-[0.12em] ${
+                  isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''
+                }`}
+              >
                 {link.label}
               </Link>
             ))}
-          </nav>
-
-          <nav className="flex items-center gap-1 rounded-full border border-transparent px-1 py-1">
+            <span className="mx-1 hidden h-4 w-px bg-[rgba(112,83,61,0.16)] lg:block" />
             {projectLinks.map((link) => (
-              <Link key={link.href} href={link.href} className={`atlas-nav-link ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''}`}>
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`atlas-nav-link whitespace-nowrap text-[12px] uppercase tracking-[0.12em] ${
+                  isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''
+                }`}
+              >
                 {link.label}
               </Link>
             ))}
@@ -103,25 +140,39 @@ function NavContent({
               <Link href="/submit/new" className="atlas-link-primary shadow-[0_14px_24px_rgba(24,17,13,0.18)]">
                 {t('common.newCard')}
               </Link>
-              <div className="relative">
+              <div ref={accountMenuRef} className="relative">
                 <button
                   type="button"
                   onClick={() => setAccountOpen((value) => !value)}
-                  className={`atlas-nav-link rounded-full border border-[rgba(112,83,61,0.14)] bg-[rgba(255,252,248,0.78)] px-4 ${accountOpen ? 'atlas-nav-link-active border-[color:var(--atlas-ink-1)]' : ''}`}
+                  className={`atlas-nav-link rounded-full border border-[rgba(112,83,61,0.14)] bg-[rgba(255,252,248,0.78)] px-4 ${
+                    accountOpen ? 'atlas-nav-link-active border-[color:var(--atlas-ink-1)]' : ''
+                  }`}
                   aria-expanded={accountOpen}
                   aria-haspopup="menu"
                 >
                   {t('nav.account')}
                 </button>
                 {accountOpen ? (
-                  <div className="absolute right-0 top-[calc(100%+0.6rem)] z-50 min-w-56 rounded-[1.25rem] border border-[rgba(112,83,61,0.14)] bg-[rgba(255,252,248,0.96)] p-2 shadow-[0_16px_40px_rgba(24,17,13,0.12)]">
+                  <div className="atlas-surface-support absolute right-0 top-[calc(100%+0.6rem)] z-50 min-w-56 p-2 shadow-[0_16px_40px_rgba(24,17,13,0.12)]">
                     <div className="grid gap-1">
                       {workspaceLinks.map((link) => (
-                        <Link key={link.href} href={link.href} prefetch={false} className={`atlas-nav-link ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''}`}>
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          prefetch={false}
+                          className={`atlas-nav-link whitespace-nowrap ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''}`}
+                        >
                           {link.label}
                         </Link>
                       ))}
-                      <button type="button" onClick={() => signOut({ callbackUrl: '/' })} className="atlas-nav-link text-left">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAccountOpen(false);
+                          signOut({ callbackUrl: '/' });
+                        }}
+                        className="atlas-nav-link text-left"
+                      >
                         {t('common.signOut')}
                       </button>
                     </div>
@@ -150,27 +201,27 @@ function NavContent({
 
       {open ? (
         <div id={mobileMenuId} className="container space-y-4 border-t border-[rgba(112,83,61,0.14)] bg-[rgba(249,244,238,0.94)] py-4 xl:hidden">
-          <section className="atlas-dark-card space-y-3">
+          <section className="atlas-surface-hero space-y-3">
             <div className="flex items-center justify-between gap-3">
               <p className="atlas-kicker">{t('nav.explore')}</p>
               <LanguageSwitcher />
             </div>
             <div className="grid gap-2">
               {exploreLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    prefetch={false}
-                    onClick={() => setOpen(false)}
-                    className={`atlas-nav-link justify-center ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : 'bg-white/10 text-white'}`}
-                  >
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  prefetch={false}
+                  onClick={() => setOpen(false)}
+                  className={`atlas-nav-link justify-center whitespace-nowrap ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : 'bg-white/10 text-white'}`}
+                >
                   {link.label}
                 </Link>
               ))}
             </div>
           </section>
 
-          <section className="atlas-card space-y-3">
+          <section className="atlas-surface-support space-y-3">
             <p className="atlas-kicker">{t('nav.project')}</p>
             <div className="grid gap-2">
               {projectLinks.map((link) => (
@@ -178,7 +229,7 @@ function NavContent({
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className={`atlas-nav-link justify-center ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''}`}
+                  className={`atlas-nav-link justify-center whitespace-nowrap ${isActive(pathname, link.href) ? 'atlas-nav-link-active' : ''}`}
                 >
                   {link.label}
                 </Link>
@@ -187,7 +238,7 @@ function NavContent({
           </section>
 
           {session ? (
-            <section className="atlas-card space-y-3">
+            <section className="atlas-surface-support space-y-3">
               <p className="atlas-kicker">{t('nav.workspace')}</p>
               <div className="grid gap-2">
                 {workspaceLinks.map((link) => (

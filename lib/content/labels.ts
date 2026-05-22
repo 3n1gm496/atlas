@@ -80,6 +80,45 @@ const reviewPriorityLabels: Record<Locale, Record<(typeof reviewPriorities)[numb
   }
 };
 
+const mediaMatchLabels: Record<Locale, Record<string, string>> = {
+  en: {
+    matched: 'Matched',
+    partial: 'Partial',
+    missing: 'Missing',
+    orphan: 'Orphan'
+  },
+  it: {
+    matched: 'Corrisposto',
+    partial: 'Parziale',
+    missing: 'Mancante',
+    orphan: 'Orfano'
+  },
+  fr: {
+    matched: 'Apparie',
+    partial: 'Partiel',
+    missing: 'Manquant',
+    orphan: 'Orphelin'
+  }
+};
+
+const mediaMatchedByLabels: Record<Locale, Record<'canonical' | 'legacy' | 'alias', string>> = {
+  en: {
+    canonical: 'Matched via canonical key',
+    legacy: 'Matched via legacy key',
+    alias: 'Matched via alias'
+  },
+  it: {
+    canonical: 'Corrisposto tramite chiave canonica',
+    legacy: 'Corrisposto tramite chiave legacy',
+    alias: 'Corrisposto tramite alias'
+  },
+  fr: {
+    canonical: 'Apparié via la clé canonique',
+    legacy: 'Apparié via la clé héritée',
+    alias: 'Apparié via un alias'
+  }
+};
+
 function resolveLocale(locale?: Locale) {
   return locale ?? defaultLocale;
 }
@@ -97,4 +136,16 @@ export function getStatusLabel(status: (typeof entryStatuses)[number] | string, 
 export function getReviewPriorityLabel(priority: (typeof reviewPriorities)[number] | string, locale?: Locale) {
   const resolved = resolveLocale(locale);
   return reviewPriorityLabels[resolved]?.[priority as (typeof reviewPriorities)[number]] ?? priority;
+}
+
+export function getMediaMatchLabel(status: string | null | undefined, locale?: Locale) {
+  if (!status) return status ?? '';
+  const resolved = resolveLocale(locale);
+  return mediaMatchLabels[resolved]?.[status] ?? mediaMatchLabels[defaultLocale]?.[status] ?? status;
+}
+
+export function getMediaMatchedByLabel(status: string | null | undefined, locale?: Locale) {
+  if (!status || status === 'none') return null;
+  const resolved = resolveLocale(locale);
+  return mediaMatchedByLabels[resolved]?.[status as 'canonical' | 'legacy' | 'alias'] ?? status;
 }

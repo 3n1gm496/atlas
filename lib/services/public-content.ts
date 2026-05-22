@@ -1,6 +1,5 @@
 import { Prisma } from '@prisma/client';
 import { logWarn } from '@/lib/logger';
-import { getWorkbookEditorialFallback } from '@/lib/content/workbook-editorial-fallbacks';
 import {
   countPublishedEntries,
   findArchiveEntries,
@@ -36,6 +35,8 @@ export type PublicEntryCard = {
   sheetKey: string | null;
   mediaAssetCount: number;
   mediaMatchStatus: string | null;
+  lat: number | null;
+  lng: number | null;
   taxonomyTerms?: string[];
   taxonomyByGroup?: Record<string, string[]>;
 };
@@ -72,18 +73,6 @@ function getSheetMetadata(metadata: Record<string, unknown> | null) {
   const sheet = metadata.sheet1;
   if (!sheet || typeof sheet !== 'object' || Array.isArray(sheet)) return null;
   return sheet as Record<string, unknown>;
-}
-
-function getWorkbookId(metadata: Record<string, unknown> | null) {
-  if (!metadata) return null;
-  if (typeof metadata.workbookId === 'string' && metadata.workbookId.trim()) return metadata.workbookId.trim();
-  const sheet = getSheetMetadata(metadata);
-  if (sheet && typeof sheet.A === 'string' && sheet.A.trim()) return sheet.A.trim();
-  return null;
-}
-
-function getEditorialFallback(metadata: Record<string, unknown> | null) {
-  return getWorkbookEditorialFallback(getWorkbookId(metadata));
 }
 
 async function withPublicFallback<T>(operation: string, fallback: T, executor: () => Promise<T>) {
@@ -239,13 +228,9 @@ export async function getEntryDetailView(slug: string): Promise<EntryDetailView 
       id: entry.id,
       slug: entry.slug,
       title: entry.title,
-      abstract: entry.abstract || getEditorialFallback(entry.metadata as Record<string, unknown> | null)?.abstract || entry.title,
-      description:
-        entry.description ||
-        getEditorialFallback(entry.metadata as Record<string, unknown> | null)?.description ||
-        entry.abstract ||
-        entry.title,
-      editorialNote: entry.editorialNote || getEditorialFallback(entry.metadata as Record<string, unknown> | null)?.note || null,
+      abstract: entry.abstract || entry.title,
+      description: entry.description || entry.abstract || entry.title,
+      editorialNote: entry.editorialNote || null,
       status: entry.status,
       canonicalLanguage: entry.canonicalLanguage,
       countryName: entry.country.name,
@@ -359,25 +344,21 @@ function toPublicEntryCard(
     id: entry.id,
     slug: entry.slug,
     title: entry.title,
-    abstract: entry.abstract || getEditorialFallback('metadata' in entry ? (entry.metadata as Record<string, unknown> | null) : null)?.abstract || entry.title,
-    description:
-      ('description' in entry && typeof entry.description === 'string' ? entry.description : null) ||
-      getEditorialFallback('metadata' in entry ? (entry.metadata as Record<string, unknown> | null) : null)?.description ||
-      null,
-    editorialNote:
-      ('editorialNote' in entry && typeof entry.editorialNote === 'string' ? entry.editorialNote : null) ||
-      getEditorialFallback('metadata' in entry ? (entry.metadata as Record<string, unknown> | null) : null)?.note ||
-      null,
+    abstract: entry.abstract || entry.title,
+    description: ('description' in entry && typeof entry.description === 'string' ? entry.description : null) || entry.abstract || entry.title,
+    editorialNote: ('editorialNote' in entry && typeof entry.editorialNote === 'string' ? entry.editorialNote : null) || null,
     status: entry.status,
     featured: entry.featured,
     countryName: entry.country.name,
     placeName: entry.placeName,
-    timePeriodLabel: entry.timePeriodLabel,
-    sheetRowNumber: sheet?.rowNumber ? Number(sheet.rowNumber) : null,
-    sheetKey: sheet?.canonicalKey ? String(sheet.canonicalKey) : null,
-    mediaAssetCount: entry.mediaAssets.length,
-    mediaMatchStatus: mediaMatch?.status ? String(mediaMatch.status) : null,
-    taxonomyTerms: taxonomyByGroup ? Object.values(taxonomyByGroup).flat() : undefined,
-    taxonomyByGroup
-  };
-}
+      timePeriodLabel: entry.timePeriodLabel,
+      sheetRowNumber: sheet?.rowNumber ? Number(sheet.rowNumber) : null,
+      sheetKey: sheet?.canonicalKey ? String(sheet.canonicalKey) : null,
+      mediaAssetCount: entry.mediaAssets.length,
+      mediaMatchStatus: mediaMatch?.status ? String(mediaMatch.status) : null,
+      lat: entry.lat,
+      lng: entry.lng,
+      taxonomyTerms: taxonomyByGroup ? Object.values(taxonomyByGroup).flat() : undefined,
+      taxonomyByGroup
+    };
+  }
